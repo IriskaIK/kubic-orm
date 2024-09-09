@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "rootDir": "./src",
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["*"]
+    }
+  },
+  "include": ["./src/**/*", "./src/**/*.json"],
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  },
+  "files":[
+    "src/types/index.d.ts"
+  ]
+}
