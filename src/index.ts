@@ -1,2 +1,4 @@
-import QueryBuilderBase from "@/query-builder/queryBuilderBase";
+
+
+console.log("Hello World!");
 
