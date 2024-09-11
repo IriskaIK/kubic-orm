@@ -1,5 +1,7 @@
-
 type ConditionOperator = '=' | '!=' | '<' | '>' | '<=' | '>=' | 'LIKE';
+
+type CRUDTableOperation = 'insert' | 'select' | 'update' | 'delete';
+
 
 interface Condition {
     field: string;
@@ -15,29 +17,28 @@ interface Join {
     on: string;
 }
 
-interface QueryBuilderOptions{
-    table : string;
+interface QueryBuilderOptions {
+    table: string;
 }
 
 
-class QueryBuilderBase{
-    private table : string;
-    private columns : string[] = ['*'];
-    private conditions : Condition[] = [];
+class QueryBuilderBase {
+    private table: string;
+    private columns: string[] = ['*'];
+    private conditions: Condition[] = [];
     private joins: Join[] = [];
     private limit?: number;
     private offset?: number;
 
+    private CRUDOperation: CRUDTableOperation = 'select';
+    private dataToSet: Record<string, any> = {};
 
-    constructor(options : QueryBuilderOptions) {
+
+    constructor(options: QueryBuilderOptions) {
         this.table = options.table;
     }
 
 
-    select(columns : string[]) : QueryBuilderBase{
-        this.columns = columns;
-        return this;
-    }
     where(condition: Condition): QueryBuilderBase {
         this.conditions.push(condition);
         return this;
@@ -56,7 +57,8 @@ class QueryBuilderBase{
     }
 
     whereNested(nestedConditions: Condition[]): QueryBuilderBase {
-        this.conditions.push({ nestedConditions, field: '', operator: '=', value: '', type: 'AND' });
+        // TODO: Rewrite logic to include nested conditions for joins
+        this.conditions.push({nestedConditions, field: '', operator: '=', value: '', type: 'AND'});
         return this;
     }
 
@@ -64,13 +66,14 @@ class QueryBuilderBase{
         this.limit = limit;
         return this;
     }
+
     offsetBy(offset: number): QueryBuilderBase {
         this.offset = offset;
         return this;
     }
 
     join(type: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL', table: string, on: string): QueryBuilderBase {
-        this.joins.push({ type, table, on });
+        this.joins.push({type, table, on});
         return this;
     }
 
@@ -90,71 +93,113 @@ class QueryBuilderBase{
         return this.join('FULL', table, on);
     }
 
-
-
     private buildConditions(conditions: Condition[]): string {
         return conditions.map(condition => {
             if (condition.nestedConditions) {
                 return `(${this.buildConditions(condition.nestedConditions)})`;
             }
 
-            const { field, operator, value, type } = condition;
+            const {field, operator, value, type} = condition;
             const conditionStr = `${field} ${operator} '${value}'`;
             return type ? `${type} ${conditionStr}` : conditionStr;
         }).join(' ');
     }
 
-
-
-
-    insert(data: Record<string, any>): string {
-        const keys = Object.keys(data);
-        const values = Object.values(data);
-        const placeholders = keys.map((_, index) => `$${index + 1}`).join(', ');
-
-        return `INSERT INTO ${this.table} (${keys.join(', ')}) VALUES (${placeholders}) RETURNING *`;
+    select(columns: string[]): QueryBuilderBase {
+        this.CRUDOperation = 'select';
+        this.columns = columns;
+        return this;
     }
 
-    update(data: Record<string, any>, conditions: Record<string, any>): string {
-        const setClause = Object.keys(data)
-            .map((key, index) => `${key} = $${index + 1}`)
-            .join(', ');
-
-        const conditionClause = Object.keys(conditions)
-            .map((key, index) => `${key} = $${Object.keys(data).length + index + 1}`)
-            .join(' AND ');
-
-        return `UPDATE ${this.table} SET ${setClause} WHERE ${conditionClause} RETURNING *`;
+    insert(data: Record<string, any>): QueryBuilderBase {
+        this.CRUDOperation = 'insert';
+        this.dataToSet = data;
+        return this;
     }
 
-    delete(conditions: Record<string, any>): string {
-        const conditionClause = Object.keys(conditions)
-            .map((key, index) => `${key} = $${index + 1}`)
-            .join(' AND ');
-
-        return `DELETE FROM ${this.table} WHERE ${conditionClause}`;
+    update(data: Record<string, any>): QueryBuilderBase {
+        this.CRUDOperation = 'update';
+        this.dataToSet = data;
+        return this;
     }
 
-    toSQL(): string{
-        let query = `SELECT ${this.columns.join(', ')} FROM ${this.table}`;
+    delete(): QueryBuilderBase {
+        this.CRUDOperation = 'delete';
+
+        return this;
+    }
+
+
+    generateWhereClause() : string{
+        // TODO: if it is insert operation - throw an error
+        let query : string = '';
+        if (this.conditions.length) {
+            const conditionsString = this.buildConditions(this.conditions);
+            query += ` WHERE ${conditionsString}`;
+        }
+        return query;
+    }
+
+    generateJoinClause() : string{
+        // TODO: if it is NOT select operation - throw an error
+
+        let query : string = '';
 
         if (this.joins.length) {
             const joinStrings = this.joins.map(join => `${join.type} JOIN ${join.table} ON ${join.on}`).join(' ');
             query += ` ${joinStrings}`;
         }
 
-        if (this.conditions.length) {
-            const conditionsString = this.buildConditions(this.conditions);
-            query += ` WHERE ${conditionsString}`;
-        }
+        return query;
+    }
+
+    generateLimitClause() : string{
+        // TODO: if it is NOT select operation - throw an error
+        let query : string = '';
 
         if (this.limit !== undefined) {
             query += ` LIMIT ${this.limit}`;
         }
+        return query;
+    }
+
+    generateOffsetClause() : string{
+        // TODO: if it is NOT select operation - throw an error
+        let query : string = '';
 
         if (this.offset !== undefined) {
             query += ` OFFSET ${this.offset}`;
         }
+        return query;
+    }
+
+
+    toSQL(): string {
+        let query: string
+        switch (this.CRUDOperation) {
+            case "select":
+                query = `SELECT ${this.columns.join(', ')} FROM ${this.table}`
+                break;
+            case "insert":
+                const keys = Object.keys(this.dataToSet).join(', ');
+                const values = "'" + Object.values(this.dataToSet).join("', '") + "'";
+                query = `INSERT INTO ${this.table} (${keys}) VALUES (${values})`
+                break;
+            case "update":
+                const setClause = Object.keys(this.dataToSet)
+                    .map((key) => `${key} = '${this.dataToSet[key]}'`)
+                    .join(', ');
+                query = `UPDATE ${this.table} SET ${setClause}`
+                break;
+            case "delete":
+                query = `DELETE FROM ${this.table}`
+                break;
+
+        }
+        query += this.generateJoinClause()
+        query += this.generateWhereClause()
+        query += this.generateLimitClause()
+        query += this.generateOffsetClause()
 
         return query;
     }
