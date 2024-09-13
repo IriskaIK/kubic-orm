@@ -1,3 +1,7 @@
+import IncompatibleActionError from "@/utils/errorHandlers/IncompatibleActionError";
+import * as process from "node:process";
+import logger from "@/utils/logger/logger";
+
 type ConditionOperator = '=' | '!=' | '<' | '>' | '<=' | '>=' | 'LIKE';
 
 type CRUDTableOperation = 'insert' | 'select' | 'update' | 'delete';
@@ -131,7 +135,13 @@ class QueryBuilderBase {
 
 
     generateWhereClause() : string{
-        // TODO: if it is insert operation - throw an error
+        if(this.CRUDOperation === 'insert'){
+            const error = new IncompatibleActionError("Cannot use WHERE clause with INSERT operation");
+            logger.error(error);
+            throw error;
+        }
+
+
         let query : string = '';
         if (this.conditions.length) {
             const conditionsString = this.buildConditions(this.conditions);
@@ -141,7 +151,12 @@ class QueryBuilderBase {
     }
 
     generateJoinClause() : string{
-        // TODO: if it is NOT select operation - throw an error
+        if(this.CRUDOperation !== 'select'){
+            const error = new IncompatibleActionError(`Cannot use JOIN clause with ${this.CRUDOperation.toUpperCase()} operation`);
+            logger.error(error);
+            throw error;
+        }
+
 
         let query : string = '';
 
@@ -154,7 +169,13 @@ class QueryBuilderBase {
     }
 
     generateLimitClause() : string{
-        // TODO: if it is NOT select operation - throw an error
+        if(this.CRUDOperation !== 'select'){
+            const error = new IncompatibleActionError(`Cannot use LIMIT with ${this.CRUDOperation.toUpperCase()} operation`);
+            logger.error(error);
+            throw error;
+        }
+
+
         let query : string = '';
 
         if (this.limit !== undefined) {
@@ -164,7 +185,13 @@ class QueryBuilderBase {
     }
 
     generateOffsetClause() : string{
-        // TODO: if it is NOT select operation - throw an error
+        if(this.CRUDOperation !== 'select'){
+            const error = new IncompatibleActionError(`Cannot use OFFSET with ${this.CRUDOperation.toUpperCase()} operation`);
+            logger.error(error);
+            throw error;
+        }
+
+
         let query : string = '';
 
         if (this.offset !== undefined) {
@@ -203,7 +230,6 @@ class QueryBuilderBase {
 
         return query;
     }
-
 
 }
 
