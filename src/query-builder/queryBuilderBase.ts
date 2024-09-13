@@ -29,6 +29,7 @@ class QueryBuilderBase {
     private joins: Join[] = [];
     private limit?: number;
     private offset?: number;
+    private isDistinct: boolean = false; //Determines if DISTINCT should be used
 
     private CRUDOperation: CRUDTableOperation = 'select';
     private dataToSet: Record<string, any> = {};
@@ -69,6 +70,11 @@ class QueryBuilderBase {
 
     offsetBy(offset: number): QueryBuilderBase {
         this.offset = offset;
+        return this;
+    }
+
+    distinct(): QueryBuilderBase {
+        this.isDistinct = true;
         return this;
     }
 
@@ -178,7 +184,8 @@ class QueryBuilderBase {
         let query: string
         switch (this.CRUDOperation) {
             case "select":
-                query = `SELECT ${this.columns.join(', ')} FROM ${this.table}`
+                const distinct = this.isDistinct ? "DISTINCT " : "";
+                query = `SELECT ${distinct}${this.columns.join(', ')} FROM ${this.table}`
                 break;
             case "insert":
                 const keys = Object.keys(this.dataToSet).join(', ');

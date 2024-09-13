@@ -61,6 +61,34 @@ describe('QueryBuilder', () => {
         expect(query).toBe("SELECT * FROM users LIMIT 10 OFFSET 5");
     });
 
+    test('should generate a SELECT DISTINCT query', () => {
+        const query = new QueryBuilderBase({table: 'users'})
+            .select(['name', 'age'])
+            .distinct()
+            .toSQL();
+
+        expect(query).toBe("SELECT DISTINCT name, age FROM users")
+    });
+
+    test('should work with WHERE conditions and DISTINCT', () => {
+        const query = new QueryBuilderBase({ table: 'users' })
+            .select(['name', 'email'])
+            .distinct()
+            .where({ field: 'age', operator: '>', value: 30 })
+            .toSQL();
+
+        expect(query).toBe("SELECT DISTINCT name, email FROM users WHERE age > '30'");
+    });
+
+    test('should handle DISTINCT with JOINs', () => {
+        const query = new QueryBuilderBase({ table: 'users' })
+            .select(['users.name', 'orders.total'])
+            .distinct()
+            .innerJoin('orders', 'users.id = orders.user_id')
+            .toSQL();
+
+        expect(query).toBe("SELECT DISTINCT users.name, orders.total FROM users INNER JOIN orders ON users.id = orders.user_id");
+    });
 
 
 });
