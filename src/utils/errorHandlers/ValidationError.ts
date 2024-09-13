@@ -7,3 +7,5 @@ class ValidationError extends CustomErrorBase {
         super(message, 'VALIDATION_ERROR');
     }
 }
+
+export default ValidationError;
