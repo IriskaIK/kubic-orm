@@ -2,7 +2,6 @@ import credentials from "@/configs/credentials.config";
 import Connection from "@/database/Connection";
 import Model from "@/base-model/baseModel";
 import HasOneRelation from "@/relations/hasOne/HasOneRelation";
-import Relation from "@/relations/Relation";
 
 
 const dbConfig = {
@@ -21,20 +20,20 @@ interface IUser {
     first_name : string,
     shippingAddress_id : number
 }
-interface IShippingAddress{
+interface ShippingAddress{
     id : number,
     region : string,
     city : string,
     postOffice : string
 }
 
-class ShippingAddress extends Model<IShippingAddress>{
+class ShippingAddress extends Model implements ShippingAddress{
     static get tableName(){
         return "shippingAddress"
     }
 }
 
-class User extends Model<IUser>{
+class User extends Model{
     static get tableName(){
         return "users"
     }
@@ -53,16 +52,12 @@ class User extends Model<IUser>{
     }
 }
 
-
-
-
 async function some(){
-    const u = await User.$query().select(['*']).withRelations().execute()
+    const u = await User.$query().select(["*"]).withRelations().execute();
     console.log(u)
 }
 
 some()
-
 
 
 
