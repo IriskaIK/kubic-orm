@@ -1,11 +1,10 @@
 import IncompatibleActionError from "@/utils/errorHandlers/IncompatibleActionError";
-import * as process from "node:process";
 import QueryBuilderValidator from "@/utils/validators/queryBuilder.validator";
 import logger from "@/utils/logger/logger";
-import ValidationError from "@/utils/errorHandlers/ValidationError";
-import queryBuilderValidator from "@/utils/validators/queryBuilder.validator";
 import {ConditionOperator} from "@/types/queryTypes";
-
+import formatStringWithDot from "@/utils/helpers/formatStringWithDot.helper"
+import Model from "@/base-model/baseModel";
+import Connection from "@/database/Connection";
 type CRUDTableOperation = 'insert' | 'select' | 'update' | 'delete';
 
 
@@ -25,133 +24,60 @@ interface Join {
 
 interface QueryBuilderOptions {
     table: string;
+    model : typeof Model;
 }
 
 
 class QueryBuilderBase {
-    private table: string;
-    private columns: string[] = ['*'];
-    private conditions: Condition[] = [];
-    private joins: Join[] = [];
-    private limit?: number;
-    private offset?: number;
-    private isDistinct: boolean = false; //Determines if DISTINCT should be used
+    protected table: string;
+    protected model : typeof Model;
+    protected columns: string[] = ['*'];
+    protected conditions: Condition[] = [];
+    protected joins: Join[] = [];
+    protected limit?: number;
+    protected offset?: number;
+    protected isDistinct: boolean = false; //Determines if DISTINCT should be used
 
-    private CRUDOperation: CRUDTableOperation = 'select';
-    private dataToSet: Record<string, any> = {};
+    protected CRUDOperation: CRUDTableOperation = 'select';
+    protected dataToSet: Record<string, any> = {};
 
 
     constructor(options: QueryBuilderOptions) {
         QueryBuilderValidator.validateTableName(options.table)
-        console.log(options.table)
         this.table = options.table;
+        this.model = options.model;
     }
 
-
-    where(condition: Condition): QueryBuilderBase {
-        queryBuilderValidator.validateColumnName(condition.field)
-
-        this.conditions.push(condition);
-        return this;
-    }
-
-    andWhere(condition: Condition): QueryBuilderBase {
-        queryBuilderValidator.validateColumnName(condition.field)
-
-        condition.type = 'AND';
-        this.conditions.push(condition);
-        return this;
-    }
-
-    orWhere(condition: Condition): QueryBuilderBase {
-        queryBuilderValidator.validateColumnName(condition.field)
-
-        condition.type = 'OR';
-        this.conditions.push(condition);
-        return this;
-    }
-
-    whereNested(nestedConditions: Condition[]): QueryBuilderBase {
-        // TODO: Rewrite logic to include nested conditions for joins
-        // TODO: Validate nested WHERE clause
-        this.conditions.push({nestedConditions, field: '', operator: '=', value: '', type: 'AND'});
-        return this;
-    }
-
-    limitTo(limit: number): QueryBuilderBase {
-        QueryBuilderValidator.validateLimitAndOffsetValue(limit, "LIMIT")
-        this.limit = limit;
-        return this;
-    }
-
-    offsetBy(offset: number): QueryBuilderBase {
-        QueryBuilderValidator.validateLimitAndOffsetValue(offset, "OFFSET")
-        this.offset = offset;
-        return this;
-    }
-
-    distinct(): QueryBuilderBase {
-        this.isDistinct = true;
-        return this;
-    }
-
-    join(type: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL', table: string, on: string): QueryBuilderBase {
+    protected join(type: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL', table: string, on: string): QueryBuilderBase {
         QueryBuilderValidator.validateTableName(table)
+
         // TODO: Validate ON
-        this.joins.push({type, table, on});
+        this.joins.push({type, table, on : formatStringWithDot(on)});
         return this;
     }
 
-    innerJoin(table: string, on: string): QueryBuilderBase {
+    protected innerJoin(table: string, on: string): QueryBuilderBase {
         QueryBuilderValidator.validateTableName(table)
         // TODO: Validate ON
         return this.join('INNER', table, on);
     }
 
-    leftJoin(table: string, on: string): QueryBuilderBase {
+    protected leftJoin(table: string, on: string): QueryBuilderBase {
         QueryBuilderValidator.validateTableName(table)
         // TODO: Validate ON
         return this.join('LEFT', table, on);
     }
 
-    rightJoin(table: string, on: string): QueryBuilderBase {
+    protected rightJoin(table: string, on: string): QueryBuilderBase {
         QueryBuilderValidator.validateTableName(table)
         // TODO: Validate ON
         return this.join('RIGHT', table, on);
     }
 
-    fullJoin(table: string, on: string): QueryBuilderBase {
+    protected fullJoin(table: string, on: string): QueryBuilderBase {
         QueryBuilderValidator.validateTableName(table)
         // TODO: Validate ON
         return this.join('FULL', table, on);
-    }
-
-    select(columns: string[]): QueryBuilderBase {
-        for (const column of columns) {
-            QueryBuilderValidator.validateColumnName(column)
-        }
-
-        this.CRUDOperation = 'select';
-        this.columns = columns;
-        return this;
-    }
-
-    insert(data: Record<string, any>): QueryBuilderBase {
-        this.CRUDOperation = 'insert';
-        this.dataToSet = data;
-        return this;
-    }
-
-    update(data: Record<string, any>): QueryBuilderBase {
-        this.CRUDOperation = 'update';
-        this.dataToSet = data;
-        return this;
-    }
-
-    delete(): QueryBuilderBase {
-        this.CRUDOperation = 'delete';
-
-        return this;
     }
 
     private buildConditions(conditions: Condition[]): string {
@@ -165,7 +91,6 @@ class QueryBuilderBase {
             return type ? `${type} ${conditionStr}` : conditionStr;
         }).join(' ');
     }
-
 
     private generateWhereClause() : string{
         if(this.CRUDOperation === 'insert'){
@@ -194,7 +119,7 @@ class QueryBuilderBase {
         let query : string = '';
 
         if (this.joins.length) {
-            const joinStrings = this.joins.map(join => `${join.type} JOIN ${join.table} ON ${join.on}`).join(' ');
+            const joinStrings = this.joins.map(join => `${join.type} JOIN "${join.table}" ON ${join.on}`).join(' ');
             query += ` ${joinStrings}`;
         }
 
@@ -234,17 +159,35 @@ class QueryBuilderBase {
     }
 
 
-    toSQL(): string {
+    protected createJoinClause(from: string, to: string, tableName : string){
+        this.innerJoin(tableName, `${from} = ${to}`)
+    }
+
+    protected mapRelations(){
+        for(const key in this.model.relations){
+            if(this.model.relations.hasOwnProperty(key)){
+                const mapping = this.model.relations[key];
+                const tableNameToJoin = mapping.model.tableName
+                const from = mapping.join.from;
+                const to = mapping.join.to;
+                this.createJoinClause(from, to, tableNameToJoin)
+            }
+        }
+
+    }
+
+
+    public toSQL(): string {
         let query: string
         switch (this.CRUDOperation) {
             case "select":
                 const distinct = this.isDistinct ? "DISTINCT " : "";
-                query = `SELECT ${distinct}${this.columns.join(', ')} FROM ${this.table}`
+                query = `SELECT ${distinct}${this.columns.join(', ')} FROM "${this.table}"`
                 break;
             case "insert":
                 const keys = Object.keys(this.dataToSet).join(', ');
                 const values = "'" + Object.values(this.dataToSet).join("', '") + "'";
-                query = `INSERT INTO ${this.table} (${keys}) VALUES (${values})`
+                query = `INSERT INTO "${this.table}" (${keys}) VALUES (${values})`
                 break;
             case "update":
                 const setClause = Object.keys(this.dataToSet)
@@ -262,8 +205,23 @@ class QueryBuilderBase {
         query += this.generateLimitClause()
         query += this.generateOffsetClause()
 
+        logger.info(query)
+
         return query;
     }
+
+
+
+    public async execute() {
+        const result = (await Connection.getInstance().query(this.toSQL())).rows
+        await Connection.getInstance().close()
+        if(Object.keys(this.model.relations).length !== 0){
+
+        }
+        return result;
+    }
+
+
 
 }
 
