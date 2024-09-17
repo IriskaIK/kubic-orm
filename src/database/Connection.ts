@@ -11,8 +11,12 @@ class Connection{
 
     }
 
-    public static getInstance(config : PoolConfig) : Connection {
+    public static getInstance(config? : PoolConfig) : Connection {
         if(!Connection.instance){
+            if(!config){
+                // TODO: Handle error
+                throw new Error('Connection config doesnt set.')
+            }
             Connection.instance = new Connection(config);
         }
 

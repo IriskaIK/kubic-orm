@@ -4,8 +4,7 @@ import QueryBuilderValidator from "@/utils/validators/queryBuilder.validator";
 import logger from "@/utils/logger/logger";
 import ValidationError from "@/utils/errorHandlers/ValidationError";
 import queryBuilderValidator from "@/utils/validators/queryBuilder.validator";
-
-type ConditionOperator = '=' | '!=' | '<' | '>' | '<=' | '>=' | 'LIKE';
+import {ConditionOperator} from "@/types/queryTypes";
 
 type CRUDTableOperation = 'insert' | 'select' | 'update' | 'delete';
 
@@ -44,7 +43,7 @@ class QueryBuilderBase {
 
     constructor(options: QueryBuilderOptions) {
         QueryBuilderValidator.validateTableName(options.table)
-
+        console.log(options.table)
         this.table = options.table;
     }
 
