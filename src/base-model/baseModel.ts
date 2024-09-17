@@ -1,9 +1,24 @@
 import QueryBuilderBase from "@/query-builder/queryBuilderBase";
 import {ConditionOperator} from "@/types/queryTypes";
 import Connection from "@/database/Connection";
+import Relation from "@/relations/Relation";
+import formatJoinStringHelper from "@/utils/helpers/formatJoinString.helper";
 
 
 
+interface RelationMapping {
+    relation : typeof Relation,
+    model : typeof Model,
+    join : {
+        from : string,
+        to : string,
+        through? : string
+    }
+}
+
+interface RelationalMappings {
+    [key : string] : RelationMapping
+}
 
 abstract class Model<T> {
     private static query: QueryBuilderBase;
@@ -14,7 +29,7 @@ abstract class Model<T> {
         throw new Error("Children must implement this method.")
     }
 
-    static get relations(){
+    static get relations() : RelationalMappings{
         return {}
     }
 
@@ -59,8 +74,36 @@ abstract class Model<T> {
     }
 
 
+    protected static createJoinClause(from: string, to: string, tableName : string){
+
+        this.query.innerJoin(tableName, `${formatJoinStringHelper(from)} = ${formatJoinStringHelper(to)}`)
+    }
+
+    protected static mapRelations(){
+        for(const key in this.relations){
+            if(this.relations.hasOwnProperty(key)){
+                const mapping = this.relations[key];
+                const tableNameToJoin = mapping.model.tableName
+                const from = mapping.join.from;
+                const to = mapping.join.to;
+                this.createJoinClause(from, to, tableNameToJoin)
+            }
+        }
+
+    }
+
+    public static withRelations() : typeof this{
+        this.mapRelations()
+        return this;
+    }
+
+
+
+
     public static async execute() {
-        return (await Connection.getInstance().query(this.query.toSQL())).rows
+        const result = (await Connection.getInstance().query(this.query.toSQL())).rows
+        await Connection.getInstance().close()
+        return result;
     }
 
 

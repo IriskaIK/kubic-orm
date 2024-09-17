@@ -1,5 +1,4 @@
 import IncompatibleActionError from "@/utils/errorHandlers/IncompatibleActionError";
-import * as process from "node:process";
 import QueryBuilderValidator from "@/utils/validators/queryBuilder.validator";
 import logger from "@/utils/logger/logger";
 import ValidationError from "@/utils/errorHandlers/ValidationError";
@@ -127,10 +126,11 @@ class QueryBuilderBase {
     }
 
     select(columns: string[]): QueryBuilderBase {
-        for (const column of columns) {
-            QueryBuilderValidator.validateColumnName(column)
+        if(columns[0] !== '*'){
+            for (const column of columns) {
+                QueryBuilderValidator.validateColumnName(column)
+            }
         }
-
         this.CRUDOperation = 'select';
         this.columns = columns;
         return this;
@@ -194,7 +194,7 @@ class QueryBuilderBase {
         let query : string = '';
 
         if (this.joins.length) {
-            const joinStrings = this.joins.map(join => `${join.type} JOIN ${join.table} ON ${join.on}`).join(' ');
+            const joinStrings = this.joins.map(join => `${join.type} JOIN "${join.table}" ON ${join.on}`).join(' ');
             query += ` ${joinStrings}`;
         }
 
@@ -239,12 +239,12 @@ class QueryBuilderBase {
         switch (this.CRUDOperation) {
             case "select":
                 const distinct = this.isDistinct ? "DISTINCT " : "";
-                query = `SELECT ${distinct}${this.columns.join(', ')} FROM ${this.table}`
+                query = `SELECT ${distinct}${this.columns.join(', ')} FROM "${this.table}"`
                 break;
             case "insert":
                 const keys = Object.keys(this.dataToSet).join(', ');
                 const values = "'" + Object.values(this.dataToSet).join("', '") + "'";
-                query = `INSERT INTO ${this.table} (${keys}) VALUES (${values})`
+                query = `INSERT INTO "${this.table}" (${keys}) VALUES (${values})`
                 break;
             case "update":
                 const setClause = Object.keys(this.dataToSet)
@@ -261,6 +261,8 @@ class QueryBuilderBase {
         query += this.generateWhereClause()
         query += this.generateLimitClause()
         query += this.generateOffsetClause()
+
+        console.log(query)
 
         return query;
     }

@@ -8,7 +8,7 @@ describe('QueryBuilder', () => {
             .where({ field: 'age', operator: '>', value: 25 })
             .toSQL();
 
-        expect(query).toBe("SELECT id, name FROM users WHERE age > '25'");
+        expect(query).toBe(`SELECT id, name FROM "users" WHERE age > '25'`);
     });
 
     test('should handle multiple conditions with AND', () => {
@@ -17,7 +17,7 @@ describe('QueryBuilder', () => {
             .andWhere({ field: 'status', operator: '=', value: 'active' })
             .toSQL();
 
-        expect(query).toBe("SELECT * FROM users WHERE age > '25' AND status = 'active'");
+        expect(query).toBe(`SELECT * FROM "users" WHERE age > '25' AND status = 'active'`);
     });
 
     test('should handle multiple conditions with OR', () => {
@@ -26,7 +26,7 @@ describe('QueryBuilder', () => {
             .orWhere({ field: 'city', operator: '=', value: 'New York' })
             .toSQL();
 
-        expect(query).toBe("SELECT * FROM users WHERE age > '25' OR city = 'New York'");
+        expect(query).toBe(`SELECT * FROM "users" WHERE age > '25' OR city = 'New York'`);
     });
 
     test('should handle nested conditions', () => {
@@ -37,7 +37,7 @@ describe('QueryBuilder', () => {
             ])
             .toSQL();
 
-        expect(query).toBe("SELECT * FROM orders WHERE (amount > '100' OR status = 'completed')");
+        expect(query).toBe(`SELECT * FROM "orders" WHERE (amount > '100' OR status = 'completed')`);
     });
 
     test('should handle joins correctly', () => {
@@ -48,7 +48,7 @@ describe('QueryBuilder', () => {
             .toSQL();
 
         expect(query).toBe(
-            "SELECT users.id, orders.amount FROM users INNER JOIN orders ON users.id = orders.user_id WHERE users.id = '1'"
+            `SELECT users.id, orders.amount FROM "users" INNER JOIN "orders" ON users.id = orders.user_id WHERE users.id = '1'`
         );
     });
 
@@ -58,7 +58,7 @@ describe('QueryBuilder', () => {
             .offsetBy(5)
             .toSQL();
 
-        expect(query).toBe("SELECT * FROM users LIMIT 10 OFFSET 5");
+        expect(query).toBe(`SELECT * FROM "users" LIMIT 10 OFFSET 5`);
     });
 
     test('should generate a SELECT DISTINCT query', () => {
@@ -67,7 +67,7 @@ describe('QueryBuilder', () => {
             .distinct()
             .toSQL();
 
-        expect(query).toBe("SELECT DISTINCT name, age FROM users")
+        expect(query).toBe(`SELECT DISTINCT name, age FROM "users"`)
     });
 
     test('should work with WHERE conditions and DISTINCT', () => {
@@ -77,7 +77,7 @@ describe('QueryBuilder', () => {
             .where({ field: 'age', operator: '>', value: 30 })
             .toSQL();
 
-        expect(query).toBe("SELECT DISTINCT name, email FROM users WHERE age > '30'");
+        expect(query).toBe(`SELECT DISTINCT name, email FROM "users" WHERE age > '30'`);
     });
 
     test('should handle DISTINCT with JOINs', () => {
@@ -87,7 +87,7 @@ describe('QueryBuilder', () => {
             .innerJoin('orders', 'users.id = orders.user_id')
             .toSQL();
 
-        expect(query).toBe("SELECT DISTINCT users.name, orders.total FROM users INNER JOIN orders ON users.id = orders.user_id");
+        expect(query).toBe(`SELECT DISTINCT users.name, orders.total FROM "users" INNER JOIN "orders" ON users.id = orders.user_id`);
     });
 
 
