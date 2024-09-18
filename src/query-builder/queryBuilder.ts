@@ -4,29 +4,19 @@ import Model from "@/base-model/baseModel";
 import queryBuilderValidator from "@/utils/validators/queryBuilder.validator";
 import formatStringWithDot from "@/utils/helpers/formatStringWithDot.helper";
 import QueryBuilderValidator from "@/utils/validators/queryBuilder.validator";
-import {ConditionOperator} from "@/types/queryTypes";
+import { Condition} from "@/types/query.types";
 
-interface QueryBuilderOptions {
-    table: string;
-    model : typeof Model;
-}
+import {RelationalMappings, Constructor} from "@/types/model.types";
 
-interface Condition {
-    field: string;
-    operator: ConditionOperator;
-    value: any;
-    type?: 'AND' | 'OR'; // To support AND/OR combinations
-    nestedConditions?: Condition[]; // For nested conditions
-}
 
-class QueryBuilder extends QueryBuilderBase{
+class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
 
-    constructor(options: QueryBuilderOptions) {
-        super(options);
+    constructor(modelClass : Constructor<T>) {
+        super(modelClass);
 
     }
 
-    public select(columns: string[]): QueryBuilder {
+    public select(columns: string[]): QueryBuilder<T> {
         if(columns[0] !== '*'){
             columns.forEach((element, index) => {
                 queryBuilderValidator.validateColumnName(element);
@@ -39,43 +29,43 @@ class QueryBuilder extends QueryBuilderBase{
     }
 
 
-    public limitTo(limit: number): QueryBuilder {
+    public limitTo(limit: number): QueryBuilder<T>  {
         QueryBuilderValidator.validateLimitAndOffsetValue(limit, "LIMIT")
         this.limit = limit;
         return this;
     }
 
-    public offsetBy(offset: number): QueryBuilder {
+    public offsetBy(offset: number): QueryBuilder<T>  {
         QueryBuilderValidator.validateLimitAndOffsetValue(offset, "OFFSET")
         this.offset = offset;
         return this;
     }
 
 
-    public distinct(): QueryBuilder {
+    public distinct(): QueryBuilder<T>  {
         this.isDistinct = true;
         return this;
     }
 
-    public insert(data: Record<string, any>): QueryBuilder {
+    public insert(data: Record<string, any>): QueryBuilder<T>  {
         this.CRUDOperation = 'insert';
         this.dataToSet = data;
         return this;
     }
 
-    public update(data: Record<string, any>): QueryBuilder {
+    public update(data: Record<string, any>): QueryBuilder<T>  {
         this.CRUDOperation = 'update';
         this.dataToSet = data;
         return this;
     }
 
-    public delete(): QueryBuilder {
+    public delete(): QueryBuilder<T>  {
         this.CRUDOperation = 'delete';
 
         return this;
     }
 
-    public where(condition: Condition): QueryBuilder {
+    public where(condition: Condition): QueryBuilder<T>  {
         queryBuilderValidator.validateColumnName(condition.field)
 
         condition.field = formatStringWithDot(condition.field)
@@ -83,7 +73,7 @@ class QueryBuilder extends QueryBuilderBase{
         return this;
     }
 
-    public andWhere(condition: Condition): QueryBuilder {
+    public andWhere(condition: Condition): QueryBuilder<T>  {
         queryBuilderValidator.validateColumnName(condition.field)
 
         condition.type = 'AND';
@@ -92,7 +82,7 @@ class QueryBuilder extends QueryBuilderBase{
         return this;
     }
 
-    public orWhere(condition: Condition): QueryBuilder {
+    public orWhere(condition: Condition): QueryBuilder<T>  {
         queryBuilderValidator.validateColumnName(condition.field)
 
         condition.field = formatStringWithDot(condition.field)
@@ -101,14 +91,14 @@ class QueryBuilder extends QueryBuilderBase{
         return this;
     }
 
-    public whereNested(nestedConditions: Condition[]): QueryBuilder {
+    public whereNested(nestedConditions: Condition[]): QueryBuilder<T>  {
         // TODO: Rewrite logic to include nested conditions for joins
         // TODO: Validate nested WHERE clause
         this.conditions.push({nestedConditions, field: '', operator: '=', value: '', type: 'AND'});
         return this;
     }
 
-    public withRelations() : QueryBuilder {
+    public withRelations() : QueryBuilder<T>  {
         this.mapRelations();
         return this;
     }

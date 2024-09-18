@@ -54,7 +54,15 @@ class User extends Model implements User{
 
 async function some(){
     const u = await User.$query().select(["*"]).withRelations().execute();
+
+
+    const k = await User.$query().select(["*"]).execute()
+
     console.log(u)
+
+    console.log("------------------")
+
+    console.log(k)
 }
 
 some()
