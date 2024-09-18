@@ -1,25 +1,10 @@
 import Connection from "@/database/Connection";
-import Relation from "@/relations/Relation";
 import QueryBuilder from "@/query-builder/queryBuilder";
+import {RelationalMappings, Constructor} from "@/types/model.types";
 
 
-
-interface RelationMapping {
-    relation : typeof Relation,
-    model : typeof Model,
-    join : {
-        from : string,
-        to : string,
-        through? : string
-    }
-}
-
-interface RelationalMappings {
-    [key : string] : RelationMapping
-}
-
-abstract class Model {
-    private static query: QueryBuilder;
+class Model {
+    private static query: QueryBuilder<typeof Model>;
     private static connection: Connection;
 
     static get tableName(): string {
@@ -31,9 +16,8 @@ abstract class Model {
         return {}
     }
 
-    public static $query(): QueryBuilder {
-        this.query = new QueryBuilder({table: this.tableName, model : this});
-        return this.query;
+    public static $query<T extends Model>(this: Constructor<T>): QueryBuilder<T> {
+        return new QueryBuilder(this);
     }
 
 }

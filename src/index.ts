@@ -15,7 +15,7 @@ const dbConfig = {
 Connection.getInstance(dbConfig);
 
 
-interface IUser {
+interface User {
     id : number,
     first_name : string,
     shippingAddress_id : number
@@ -33,7 +33,7 @@ class ShippingAddress extends Model implements ShippingAddress{
     }
 }
 
-class User extends Model{
+class User extends Model implements User{
     static get tableName(){
         return "users"
     }
@@ -54,7 +54,15 @@ class User extends Model{
 
 async function some(){
     const u = await User.$query().select(["*"]).withRelations().execute();
+
+
+    const k = await User.$query().select(["*"]).execute()
+
     console.log(u)
+
+    console.log("------------------")
+
+    console.log(k)
 }
 
 some()

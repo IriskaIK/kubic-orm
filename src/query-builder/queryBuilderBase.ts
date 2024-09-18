@@ -1,36 +1,16 @@
 import IncompatibleActionError from "@/utils/errorHandlers/IncompatibleActionError";
 import QueryBuilderValidator from "@/utils/validators/queryBuilder.validator";
 import logger from "@/utils/logger/logger";
-import {ConditionOperator} from "@/types/queryTypes";
+import {ConditionOperator, CRUDTableOperation, Condition, Join, QueryBuilderOptions} from "@/types/query.types";
 import formatStringWithDot from "@/utils/helpers/formatStringWithDot.helper"
 import Model from "@/base-model/baseModel";
 import Connection from "@/database/Connection";
-type CRUDTableOperation = 'insert' | 'select' | 'update' | 'delete';
+import {RelationalMappings, Constructor} from "@/types/model.types";
 
 
-interface Condition {
-    field: string;
-    operator: ConditionOperator;
-    value: any;
-    type?: 'AND' | 'OR'; // To support AND/OR combinations
-    nestedConditions?: Condition[]; // For nested conditions
-}
-
-interface Join {
-    type: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL';
-    table: string;
-    on: string;
-}
-
-interface QueryBuilderOptions {
-    table: string;
-    model : typeof Model;
-}
-
-
-class QueryBuilderBase {
+class QueryBuilderBase<T extends Model> {
     protected table: string;
-    protected model : typeof Model;
+    // protected model : typeof Model;
     protected columns: string[] = ['*'];
     protected conditions: Condition[] = [];
     protected joins: Join[] = [];
@@ -38,17 +18,19 @@ class QueryBuilderBase {
     protected offset?: number;
     protected isDistinct: boolean = false; //Determines if DISTINCT should be used
 
+    protected modelClass : Constructor<T>;
+
     protected CRUDOperation: CRUDTableOperation = 'select';
     protected dataToSet: Record<string, any> = {};
 
 
-    constructor(options: QueryBuilderOptions) {
-        QueryBuilderValidator.validateTableName(options.table)
-        this.table = options.table;
-        this.model = options.model;
+    constructor(modelClass : Constructor<T>) {
+        QueryBuilderValidator.validateTableName(modelClass.tableName)
+        this.table = modelClass.tableName;
+        this.modelClass = modelClass;
     }
 
-    protected join(type: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL', table: string, on: string): QueryBuilderBase {
+    protected join(type: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL', table: string, on: string): QueryBuilderBase<T>   {
         QueryBuilderValidator.validateTableName(table)
 
         // TODO: Validate ON
@@ -56,25 +38,25 @@ class QueryBuilderBase {
         return this;
     }
 
-    protected innerJoin(table: string, on: string): QueryBuilderBase {
+    protected innerJoin(table: string, on: string): QueryBuilderBase<T>   {
         QueryBuilderValidator.validateTableName(table)
         // TODO: Validate ON
         return this.join('INNER', table, on);
     }
 
-    protected leftJoin(table: string, on: string): QueryBuilderBase {
+    protected leftJoin(table: string, on: string): QueryBuilderBase<T>   {
         QueryBuilderValidator.validateTableName(table)
         // TODO: Validate ON
         return this.join('LEFT', table, on);
     }
 
-    protected rightJoin(table: string, on: string): QueryBuilderBase {
+    protected rightJoin(table: string, on: string): QueryBuilderBase<T>   {
         QueryBuilderValidator.validateTableName(table)
         // TODO: Validate ON
         return this.join('RIGHT', table, on);
     }
 
-    protected fullJoin(table: string, on: string): QueryBuilderBase {
+    protected fullJoin(table: string, on: string): QueryBuilderBase<T>   {
         QueryBuilderValidator.validateTableName(table)
         // TODO: Validate ON
         return this.join('FULL', table, on);
@@ -161,12 +143,13 @@ class QueryBuilderBase {
 
     protected createJoinClause(from: string, to: string, tableName : string){
         this.innerJoin(tableName, `${from} = ${to}`)
+        this.columns.push(`row_to_json("${tableName}") AS ${tableName}`)
     }
 
     protected mapRelations(){
-        for(const key in this.model.relations){
-            if(this.model.relations.hasOwnProperty(key)){
-                const mapping = this.model.relations[key];
+        for(const key in this.modelClass.relations){
+            if(this.modelClass.relations.hasOwnProperty(key)){
+                const mapping = this.modelClass.relations[key];
                 const tableNameToJoin = mapping.model.tableName
                 const from = mapping.join.from;
                 const to = mapping.join.to;
@@ -210,15 +193,21 @@ class QueryBuilderBase {
         return query;
     }
 
+    private mapQueryResultsToModel(result : object[]) : T[]{
+        let mappedInstances : T[] = [];
+        result.forEach((e)=>{
+            const instance = new this.modelClass()
+            Object.assign(instance, e)
+            mappedInstances.push(instance)
+        })
+        return mappedInstances;
+    }
 
 
-    public async execute() {
+
+    public async execute() : Promise<T[]> {
         const result = (await Connection.getInstance().query(this.toSQL())).rows
-        await Connection.getInstance().close()
-        if(Object.keys(this.model.relations).length !== 0){
-
-        }
-        return result;
+        return this.mapQueryResultsToModel(result);
     }
 
 
