@@ -15,7 +15,7 @@ const dbConfig = {
 Connection.getInstance(dbConfig);
 
 
-interface IUser {
+interface User {
     id : number,
     first_name : string,
     shippingAddress_id : number
@@ -33,7 +33,7 @@ class ShippingAddress extends Model implements ShippingAddress{
     }
 }
 
-class User extends Model{
+class User extends Model implements User{
     static get tableName(){
         return "users"
     }

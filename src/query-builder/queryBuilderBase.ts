@@ -5,8 +5,10 @@ import {ConditionOperator} from "@/types/queryTypes";
 import formatStringWithDot from "@/utils/helpers/formatStringWithDot.helper"
 import Model from "@/base-model/baseModel";
 import Connection from "@/database/Connection";
-type CRUDTableOperation = 'insert' | 'select' | 'update' | 'delete';
 
+
+
+type CRUDTableOperation = 'insert' | 'select' | 'update' | 'delete';
 
 interface Condition {
     field: string;
@@ -161,6 +163,7 @@ class QueryBuilderBase {
 
     protected createJoinClause(from: string, to: string, tableName : string){
         this.innerJoin(tableName, `${from} = ${to}`)
+        this.columns.push(`row_to_json("${tableName}") AS ${tableName}`)
     }
 
     protected mapRelations(){
@@ -210,15 +213,22 @@ class QueryBuilderBase {
         return query;
     }
 
+    private mapQueryResultsToModel(result : object[]){
+        let mappedInstances : Model[] = [];
+        result.forEach((e)=>{
+            const instance = new this.model()
+            Object.assign(instance, e)
+            mappedInstances.push(instance)
+        })
+        return mappedInstances;
+    }
+
 
 
     public async execute() {
         const result = (await Connection.getInstance().query(this.toSQL())).rows
         await Connection.getInstance().close()
-        if(Object.keys(this.model.relations).length !== 0){
-
-        }
-        return result;
+        return this.mapQueryResultsToModel(result);
     }
 
 

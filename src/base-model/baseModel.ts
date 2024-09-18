@@ -18,7 +18,7 @@ interface RelationalMappings {
     [key : string] : RelationMapping
 }
 
-abstract class Model {
+class Model {
     private static query: QueryBuilder;
     private static connection: Connection;
 
