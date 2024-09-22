@@ -1,4 +1,4 @@
-import Relation from "@/relations/Relation";
+import {Relation} from "@/relations/Relation";
 import Model from "@/base-model/baseModel";
 
 export interface RelationMapping {

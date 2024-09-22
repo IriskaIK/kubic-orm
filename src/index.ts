@@ -1,8 +1,6 @@
 import credentials from "@/configs/credentials.config";
 import Connection from "@/database/Connection";
 import Model from "@/base-model/baseModel";
-import HasOneRelation from "@/relations/hasOne/HasOneRelation";
-
 
 const dbConfig = {
     user: credentials.user,
@@ -38,18 +36,6 @@ class User extends Model implements User{
         return "users"
     }
 
-    static get relations(){
-        return {
-            shippingAddress : {
-                relation : HasOneRelation,
-                model : ShippingAddress,
-                join : {
-                    from : 'users.shippingAddress_id',
-                    to : 'shippingAddress.id'
-                }
-            }
-        }
-    }
 }
 
 async function some(){
