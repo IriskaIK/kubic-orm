@@ -11,7 +11,20 @@ export class HasManyRelation<S, R extends Model> extends Relation<S, R>{
     }
 
     public createJoinClause(): Join[] {
-        return []
+        return [{
+            type: 'INNER',
+            tables: [this.sourceModelClass.tableName, this.relatedModelClass.tableName],
+            on: [{
+                leftColumn: {
+                    column: this.sourceIdentiferColumn, // Primary key from source model
+                    parentTable: this.sourceModelClass.tableName
+                },
+                rightColumn: {
+                    column: this.relatedIdentiferColumn, // Foreign key from related model
+                    parentTable: this.relatedModelClass.tableName
+                }
+            }]
+        }];
     }
 
     public createQuery(): QueryBuilder<R> {
