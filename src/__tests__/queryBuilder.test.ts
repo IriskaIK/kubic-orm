@@ -27,6 +27,14 @@ describe('QueryBuilder', () => {
         expect(query).toBe(`SELECT "id", "name" FROM "testModel" WHERE "age" > "25"`);
     });
 
+
+    test('should handle alias in SELECT query', () => {
+        const query = new QueryBuilder(TestModel)
+            .select(['id AS userId', 'name'])
+            .getSQL()
+        expect(query).toBe(`SELECT "id" AS "userId", "name" FROM "testModel"`);
+    });
+
     test('should handle multiple conditions with AND', () => {
         const query = new QueryBuilder(TestModel)
             .where('age', '>', '25')

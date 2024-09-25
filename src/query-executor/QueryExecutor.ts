@@ -5,7 +5,7 @@ import Model from "@/base-model/baseModel";
 class QueryExecutor {
 
     private static getColumnSQLString(column: Column) {
-        return `"${column.parentTable ? column.parentTable + '"."' : ''}${column.column}"`
+        return `"${column.parentTable ? column.parentTable + '"."' : ''}${column.column}"${column.alias ? ` AS "${column.alias}"` : ""}`
     }
 
     private static buildConditions(conditions: Condition[]): string {

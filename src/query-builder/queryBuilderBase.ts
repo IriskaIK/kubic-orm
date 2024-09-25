@@ -27,13 +27,17 @@ class QueryBuilderBase<T extends Model> {
     }
 
 
-    private parseColumn(column: string): Column {
+    private parseColumn(column: string, alias? : string): Column {
         // TODO: Validate column
+        if(column.includes(' AS ')){
+            const [col, alias] = column.split(" AS ")
+            return this.parseColumn(col, alias)
+        }
         if (column.includes('.')) {
             const [table, col] = column.split('.')
-            return {column: col, parentTable: table}
+            return {column: col, parentTable: table, alias : alias}
         } else {
-            return {column: column}
+            return {column: column, alias : alias}
         }
     }
 
