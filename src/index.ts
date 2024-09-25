@@ -14,41 +14,42 @@ Connection.getInstance(dbConfig);
 
 
 interface User {
-    id : number,
-    first_name : string,
-    shippingAddress_id : number
-}
-interface ShippingAddress{
-    id : number,
-    region : string,
-    city : string,
-    postOffice : string
+    id: number,
+    first_name: string,
+    shippingAddress_id: number
 }
 
-class ShippingAddress extends Model implements ShippingAddress{
-    static get tableName(){
+interface ShippingAddress {
+    id: number,
+    region: string,
+    city: string,
+    postOffice: string
+}
+
+class ShippingAddress extends Model implements ShippingAddress {
+    static get tableName() {
         return "shippingAddress"
     }
 }
 
-class User extends Model implements User{
-    static get tableName(){
+class User extends Model implements User {
+    static get tableName() {
         return "users"
     }
 
 }
 
-async function some(){
-    const u = await User.$query().select(["*"]).withRelations().execute();
+async function some() {
+    const u = User.$query()
+        .select(["id", "orders.id", "users.name"])
+        .where('users.age', '>', '30')
+        .andWhere('users.name', '=', undefined, 'orders.user_name')
+        .limitTo(20)
+        .offsetBy(20)
+        .innerJoin('orders', 'users.id = orders.user_id')
+        .execute();
 
 
-    const k = await User.$query().select(["*"]).execute()
-
-    console.log(u)
-
-    console.log("------------------")
-
-    console.log(k)
 }
 
 some()

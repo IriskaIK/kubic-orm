@@ -1,110 +1,112 @@
 import QueryBuilderBase from "@/query-builder/queryBuilderBase";
 
 import Model from "@/base-model/baseModel";
-import queryBuilderValidator from "@/utils/validators/queryBuilder.validator";
-import formatStringWithDot from "@/utils/helpers/formatStringWithDot.helper";
 import QueryBuilderValidator from "@/utils/validators/queryBuilder.validator";
-import { Condition} from "@/types/query.types";
 
 import {RelationalMappings, Constructor} from "@/types/model.types";
+import {Operator} from "@/types/query.types";
 
 
 class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
 
-    constructor(modelClass : Constructor<T>) {
+    constructor(modelClass: Constructor<T>) {
         super(modelClass);
-
     }
+
 
     public select(columns: string[]): QueryBuilder<T> {
-        if(columns[0] !== '*'){
-            columns.forEach((element, index) => {
-                queryBuilderValidator.validateColumnName(element);
-                columns[index] = formatStringWithDot(element);
-            })
-        }
-        this.CRUDOperation = 'select';
-        this.columns = columns;
+        columns.forEach((col) => {
+            this.addColumn(col)
+        })
         return this;
     }
 
 
-    public limitTo(limit: number): QueryBuilder<T>  {
+    public innerJoin(table: string, on: string): QueryBuilderBase<T> {
+        QueryBuilderValidator.validateTableName(table)
+        // TODO: Validate ON
+        return this.join('INNER', table, on);
+    }
+
+    public leftJoin(table: string, on: string): QueryBuilderBase<T> {
+        QueryBuilderValidator.validateTableName(table)
+        // TODO: Validate ON
+        return this.join('LEFT', table, on);
+    }
+
+    public rightJoin(table: string, on: string): QueryBuilderBase<T> {
+        QueryBuilderValidator.validateTableName(table)
+        // TODO: Validate ON
+        return this.join('RIGHT', table, on);
+    }
+
+
+    public fullJoin(table: string, on: string): QueryBuilderBase<T> {
+        QueryBuilderValidator.validateTableName(table)
+        // TODO: Validate ON
+        return this.join('FULL', table, on);
+    }
+
+    public limitTo(limit: number): QueryBuilder<T> {
         QueryBuilderValidator.validateLimitAndOffsetValue(limit, "LIMIT")
-        this.limit = limit;
+        this.setLimit(limit)
         return this;
     }
 
-    public offsetBy(offset: number): QueryBuilder<T>  {
+    public offsetBy(offset: number): QueryBuilder<T> {
         QueryBuilderValidator.validateLimitAndOffsetValue(offset, "OFFSET")
-        this.offset = offset;
+        this.setOffset(offset)
         return this;
     }
 
+    public where(column : string, operator : Operator, value? : string, compareColumn? : string): QueryBuilder<T> {
+        QueryBuilderValidator.validateColumnName(column);
+        compareColumn && QueryBuilderValidator.validateColumnName(compareColumn);
+        this.addCondition(column, operator, value, compareColumn)
+        return this;
+    }
+
+    public andWhere(column : string, operator : Operator, value? : string, compareColumn? : string): QueryBuilder<T> {
+        QueryBuilderValidator.validateColumnName(column)
+        compareColumn && QueryBuilderValidator.validateColumnName(compareColumn);
+        this.addCondition(column, operator, value, compareColumn, "AND")
+        return this;
+    }
+
+    public orWhere(column : string, operator : Operator, value? : string, compareColumn? : string): QueryBuilder<T> {
+        QueryBuilderValidator.validateColumnName(column)
+        compareColumn && QueryBuilderValidator.validateColumnName(compareColumn);
+        this.addCondition(column, operator, value, compareColumn, "OR")
+        return this;
+    }
 
     public distinct(): QueryBuilder<T>  {
-        this.isDistinct = true;
+        this.setDistinct();
         return this;
     }
 
-    public insert(data: Record<string, any>): QueryBuilder<T>  {
-        this.CRUDOperation = 'insert';
-        this.dataToSet = data;
-        return this;
-    }
+    // public insert(data: Record<string, any>): QueryBuilder<T>  {
+    //     this.CRUDOperation = 'insert';
+    //     this.dataToSet = data;
+    //     return this;
+    // }
+    //
+    // public update(data: Record<string, any>): QueryBuilder<T>  {
+    //     this.CRUDOperation = 'update';
+    //     this.dataToSet = data;
+    //     return this;
+    // }
+    //
+    // public delete(): QueryBuilder<T>  {
+    //     this.CRUDOperation = 'delete';
+    //
+    //     return this;
+    // }
 
-    public update(data: Record<string, any>): QueryBuilder<T>  {
-        this.CRUDOperation = 'update';
-        this.dataToSet = data;
-        return this;
-    }
-
-    public delete(): QueryBuilder<T>  {
-        this.CRUDOperation = 'delete';
-
-        return this;
-    }
-
-    public where(condition: Condition): QueryBuilder<T>  {
-        queryBuilderValidator.validateColumnName(condition.field)
-
-        condition.field = formatStringWithDot(condition.field)
-        this.conditions.push(condition);
-        return this;
-    }
-
-    public andWhere(condition: Condition): QueryBuilder<T>  {
-        queryBuilderValidator.validateColumnName(condition.field)
-
-        condition.type = 'AND';
-        condition.field = formatStringWithDot(condition.field)
-        this.conditions.push(condition);
-        return this;
-    }
-
-    public orWhere(condition: Condition): QueryBuilder<T>  {
-        queryBuilderValidator.validateColumnName(condition.field)
-
-        condition.field = formatStringWithDot(condition.field)
-        condition.type = 'OR';
-        this.conditions.push(condition);
-        return this;
-    }
-
-    public whereNested(nestedConditions: Condition[]): QueryBuilder<T>  {
-        // TODO: Rewrite logic to include nested conditions for joins
-        // TODO: Validate nested WHERE clause
-        this.conditions.push({nestedConditions, field: '', operator: '=', value: '', type: 'AND'});
-        return this;
-    }
-
-    public withRelations() : QueryBuilder<T>  {
-        this.mapRelations();
-        return this;
-    }
-
-
-
+    // public withRelations() : QueryBuilder<T>  {
+    //     this.mapRelations();
+    //     return this;
+    // }
 
 
 }

@@ -1,5 +1,5 @@
 import Model from "@/base-model/baseModel";
-import {Constructor, Column, Join} from "@/relations/types";
+import {Constructor, Column, Join} from "@/types/query.types";
 import QueryBuilder from "@/query-builder/queryBuilder";
 
 export abstract class Relation<S, R extends Model>{
