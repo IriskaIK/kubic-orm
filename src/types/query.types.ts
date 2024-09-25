@@ -67,7 +67,10 @@ export interface RelationMapping {
     join : {
         from : string,
         to : string,
-        through? : string
+        through? : {
+            to : string,
+            from : string
+        }
     }
 }
 

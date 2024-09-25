@@ -17,32 +17,39 @@ export class ManyToManyRelation<S, R extends Model> extends Relation<S, R> {
             // First join: Source table -> Through table
             {
                 type: 'INNER',
-                tables: [this.sourceModelClass.tableName, this.throughTable],
-                on: [{
+                tables : {
+                    sourceTable : this.sourceModelClass.tableName,
+                    relatedTable : this.throughTable
+                },
+                on: {
                     leftColumn: {
                         column: this.sourceIdentiferColumn, // Foreign key in source table
                         parentTable: this.sourceModelClass.tableName
                     },
                     rightColumn: {
-                        column: `${this.throughTable}.${this.sourceModelClass.tableName}_id`,
-                        parentTable: this.throughTable
+                        column: this.sourceModelClass.relations[this.relationName].join.from,
+                        // column: `${this.throughTable}.${this.sourceModelClass.tableName}_id`,
+                        // parentTable: this.throughTable
                     }
-                }]
+                }
             },
-            // Second join: Through table -> Related table
             {
                 type: 'INNER',
-                tables: [this.throughTable, this.relatedModelClass.tableName],
-                on: [{
+                tables : {
+                  sourceTable : this.throughTable,
+                  relatedTable:  this.relatedModelClass.tableName
+                },
+                on: {
                     leftColumn: {
-                        column: `${this.throughTable}.${this.relatedModelClass.tableName}_id`,
-                        parentTable: this.throughTable
+                        column : this.sourceModelClass.relations[this.relationName].join.to
+                        // column: `${this.throughTable}.${this.relatedModelClass.tableName}_id`,
+                        // parentTable: this.throughTable
                     },
                     rightColumn: {
                         column: this.relatedIdentiferColumn, // Primary key in related table
                         parentTable: this.relatedModelClass.tableName
                     }
-                }]
+                }
             }
         ];
     }
