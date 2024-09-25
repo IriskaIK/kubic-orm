@@ -11,7 +11,20 @@ export class BelongsToOneRelation<S, R extends Model> extends Relation<S, R>{
 
 
     public createJoinClause(): Join[] {
-        return []
+        return [{
+            type: 'INNER',
+            tables: [this.sourceModelClass.tableName, this.relatedModelClass.tableName],
+            on: [{
+                leftColumn: {
+                    column: this.sourceIdentiferColumn, // Foreign key
+                    parentTable: this.sourceModelClass.tableName
+                },
+                rightColumn: {
+                    column: this.relatedIdentiferColumn, // Primary key
+                    parentTable: this.relatedModelClass.tableName
+                }
+            }]
+        }];
     }
 
     public createQuery(): QueryBuilder<R> {
