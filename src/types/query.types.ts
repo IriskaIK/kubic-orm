@@ -69,7 +69,8 @@ export interface RelationMapping {
         to : string,
         through? : {
             to : string,
-            from : string
+            from : string,
+            tableName : string
         }
     }
 }

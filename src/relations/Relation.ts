@@ -55,6 +55,8 @@ export abstract class Relation<S, R extends Model>{
     constructor(sourceModelClass: Constructor<S>, relatedModelClass : Constructor<R>, columns : string[]){
         this.sourceModelClass = sourceModelClass
         this.relatedModelClass = relatedModelClass
+        this.sourceTableName = sourceModelClass.tableName
+        this.relatedTableName = relatedModelClass.tableName
         this.parseColumns(columns);
     }
 }

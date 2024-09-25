@@ -5,49 +5,51 @@ import QueryBuilder from "@/query-builder/queryBuilder";
 
 export class ManyToManyRelation<S, R extends Model> extends Relation<S, R> {
 
-    private throughTable: string;
-
-    constructor(sourceModelClass: Constructor<S>, relatedModelClass: Constructor<R>, throughTable: string, columns: string[]) {
+    constructor(sourceModelClass: Constructor<S>, relatedModelClass: Constructor<R>, columns: string[]) {
         super(sourceModelClass, relatedModelClass, columns);
-        this.throughTable = throughTable;
     }
 
     public createJoinClause(): Join[] {
+        const through = this.sourceModelClass.relations[this.relationName].join.through
+        if(!through){
+            // TODO : add Error for not setting through values
+            throw new Error('')
+        }
+
         return [
             // First join: Source table -> Through table
             {
                 type: 'INNER',
                 tables : {
-                    sourceTable : this.sourceModelClass.tableName,
-                    relatedTable : this.throughTable
+                    sourceTable : this.sourceTableName,
+                    relatedTable : through.tableName
                 },
                 on: {
                     leftColumn: {
                         column: this.sourceIdentiferColumn, // Foreign key in source table
-                        parentTable: this.sourceModelClass.tableName
+                        parentTable: this.sourceTableName
                     },
                     rightColumn: {
-                        column: this.sourceModelClass.relations[this.relationName].join.from,
-                        // column: `${this.throughTable}.${this.sourceModelClass.tableName}_id`,
-                        // parentTable: this.throughTable
+                        column: through.from,
+                        parentTable : through.tableName
+
                     }
                 }
             },
             {
                 type: 'INNER',
                 tables : {
-                  sourceTable : this.throughTable,
-                  relatedTable:  this.relatedModelClass.tableName
+                  sourceTable : through.tableName,
+                  relatedTable:  this.relatedTableName
                 },
                 on: {
                     leftColumn: {
-                        column : this.sourceModelClass.relations[this.relationName].join.to
-                        // column: `${this.throughTable}.${this.relatedModelClass.tableName}_id`,
-                        // parentTable: this.throughTable
+                        column : through.to,
+                        parentTable : through.tableName
                     },
                     rightColumn: {
                         column: this.relatedIdentiferColumn, // Primary key in related table
-                        parentTable: this.relatedModelClass.tableName
+                        parentTable: this.relatedTableName
                     }
                 }
             }

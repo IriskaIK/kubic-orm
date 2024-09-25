@@ -15,17 +15,17 @@ export class HasManyRelation<S, R extends Model> extends Relation<S, R>{
             type: 'INNER',
             // tables: [this.sourceModelClass.tableName, this.relatedModelClass.tableName],
             tables : {
-                sourceTable : this.sourceModelClass.tableName,
-                relatedTable : this.relatedModelClass.tableName
+                sourceTable : this.sourceTableName,
+                relatedTable : this.relatedTableName
             },
             on: {
                 leftColumn: {
                     column: this.sourceIdentiferColumn, // Primary key from source model
-                    parentTable: this.sourceModelClass.tableName
+                    parentTable: this.sourceTableName
                 },
                 rightColumn: {
                     column: this.relatedIdentiferColumn, // Foreign key from related model
-                    parentTable: this.relatedModelClass.tableName
+                    parentTable: this.relatedTableName
                 }
             }
         }];

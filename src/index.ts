@@ -1,6 +1,10 @@
 import credentials from "@/configs/credentials.config";
 import Connection from "@/database/Connection";
 import Model from "@/base-model/baseModel";
+import {ManyToManyRelation} from "@/relations/ManyToManyRelation/ManyToManyRelation";
+import {RelationalMappings} from "@/types/query.types";
+import {Relation} from "@/relations/Relation";
+import {BelongsToOneRelation} from "@/relations/BelongsToOne/BelongsToOneRelation";
 
 const dbConfig = {
     user: credentials.user,
@@ -35,6 +39,24 @@ class ShippingAddress extends Model implements ShippingAddress {
 class User extends Model implements User {
     static get tableName() {
         return "users"
+    }
+
+    static get relations() : RelationalMappings{
+        return {
+            'shipping_address' : {
+                relation : ManyToManyRelation,
+                model : ShippingAddress,
+                join : {
+                    from : 'users.id',
+                    to : 'shippingAddress.id',
+                    through : {
+                        from : 'users_address.user_id',
+                        to : 'users_address.address_id',
+                        tableName : 'users_address'
+                    }
+                }
+            }
+        }
     }
 
 }
