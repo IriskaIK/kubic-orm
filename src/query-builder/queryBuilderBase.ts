@@ -16,6 +16,7 @@ class QueryBuilderBase<T extends Model> {
     constructor(modelClass: Constructor<T>) {
         QueryBuilderValidator.validateTableName(modelClass.tableName)
         this.query = {
+            crudOperation : "SELECT",
             model: modelClass,
             table: modelClass.tableName,
             columns: [],
@@ -89,6 +90,11 @@ class QueryBuilderBase<T extends Model> {
     public async execute(){
         await QueryExecutor.execute(this.query)
         // console.log(this.query)
+    }
+
+
+    public getSQL(){
+        return QueryExecutor.toSQL(this.query)
     }
 
 

@@ -5,7 +5,7 @@ import Model from "@/base-model/baseModel";
 class QueryExecutor {
 
     private static getColumnSQLString(column: Column) {
-        return `"${column.parentTable ? column.parentTable + '.' : ''}${column.column}"`
+        return `"${column.parentTable ? column.parentTable + '"."' : ''}${column.column}"`
     }
 
     private static buildConditions(conditions: Condition[]): string {
@@ -15,23 +15,25 @@ class QueryExecutor {
             }
 
             const {column, operator, value, logicalOperator, compareColumn} = condition;
-            const conditionStr = `${this.getColumnSQLString(column)} ${operator} ${compareColumn ? this.getColumnSQLString(compareColumn) : value}`;
+            const conditionStr = `${this.getColumnSQLString(column)} ${operator} ${compareColumn ? this.getColumnSQLString(compareColumn) : `"${value}"`}`;
             return logicalOperator ? `${logicalOperator} ${conditionStr}` : conditionStr;
         }).join(' ');
     }
-
 
     private static buildJoinOnClause(on: JoinCondition) {
         return `${this.getColumnSQLString(on.leftColumn)} = ${this.getColumnSQLString(on.rightColumn)}`
     }
 
-
     private static buildSelectClause(columns: Column[], tableName: string, isDistinct: boolean) {
+        const distinct = isDistinct ? "DISTINCT " : "";
         let columnsArray: string[] = []
+
+        if(columns.length === 0){
+            return `SELECT ${distinct}* FROM "${tableName}"`
+        }
         columns.forEach((column) => {
             columnsArray.push(this.getColumnSQLString(column))
         })
-        const distinct = isDistinct ? "DISTINCT " : "";
         return `SELECT ${distinct}${columnsArray.join(', ')} FROM "${tableName}"`
     }
 
@@ -100,8 +102,8 @@ class QueryExecutor {
         return query;
     }
 
-
-    private static toSQL<T extends Model>(query: Query<T>): string {
+    // TODO: change to private. Public only for tests
+    public static toSQL<T extends Model>(query: Query<T>): string {
         let queryString = '';
         queryString += this.buildSelectClause(query.columns, query.table, query.distinct);
         queryString += this.buildJoinClause(query.joins);

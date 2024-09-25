@@ -36,9 +36,13 @@ export interface Join {
 }
 
 
+type SQLOperation = "SELECT" | "INSERT" | "UPDATE" | "DELETE";
+
+
 // Relations
 
 export interface Query<T extends Model> {
+    crudOperation : SQLOperation;
     model : Constructor<T>;
     table : string;
     distinct : boolean;
