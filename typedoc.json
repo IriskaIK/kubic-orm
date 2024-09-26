@@ -1,0 +1,10 @@
+{
+  "entryPoints": ["./src/base-model/baseModel.ts", "./src/query-builder/queryBuilder.ts", "./src/query-builder/queryBuilderBase.ts"],
+  "out": "docs",
+  "exclude": ["./src/__tests__/**"],
+  "tsconfig": "./tsconfig.json",
+  "name": "KubicORM",
+  "includeVersion": true,
+  "hideGenerator": true,
+  "readme": "./readme.md"
+}

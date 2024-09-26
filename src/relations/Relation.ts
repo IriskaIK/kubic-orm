@@ -1,6 +1,6 @@
-import Model from "@/base-model/baseModel";
+import {Model} from "@/base-model/baseModel";
 import {Constructor, Column, Join} from "@/types/query.types";
-import QueryBuilder from "@/query-builder/queryBuilder";
+import {QueryBuilder} from "@/query-builder/queryBuilder";
 
 export abstract class Relation<S, R extends Model>{
     protected relationName : string = '';

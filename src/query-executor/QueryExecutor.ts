@@ -1,6 +1,6 @@
 import Connection from "@/database/Connection";
 import {Column, Condition, Join, JoinCondition, Query} from "@/types/query.types";
-import Model from "@/base-model/baseModel";
+import {Model} from "@/base-model/baseModel";
 
 class QueryExecutor {
 

@@ -5,7 +5,8 @@
   "scripts": {
     "test": "jest",
     "startNodemon": "nodemon src/index.ts",
-    "start": "ts-node src/index.ts"
+    "start": "ts-node src/index.ts",
+    "docs": "typedoc"
   },
   "keywords": [],
   "author": "Pavlo Petrychenko",
@@ -30,6 +31,7 @@
     "@types/pg": "^8.11.8",
     "@types/pino": "^7.0.4",
     "jest": "^29.7.0",
-    "ts-jest": "^29.2.5"
+    "ts-jest": "^29.2.5",
+    "typedoc": "^0.26.7"
   }
 }

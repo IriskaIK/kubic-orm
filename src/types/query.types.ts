@@ -1,5 +1,5 @@
 import {Relation} from "@/relations/Relation";
-import Model from "@/base-model/baseModel";
+import {Model} from "@/base-model/baseModel";
 
 export type Column = {
     column : string,

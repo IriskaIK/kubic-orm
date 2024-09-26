@@ -1,6 +1,6 @@
 import credentials from "@/configs/credentials.config";
 import Connection from "@/database/Connection";
-import Model from "@/base-model/baseModel";
+import {Model} from "@/base-model/baseModel";
 import {ManyToManyRelation} from "@/relations/ManyToManyRelation/ManyToManyRelation";
 import {RelationalMappings} from "@/types/query.types";
 import {Relation} from "@/relations/Relation";

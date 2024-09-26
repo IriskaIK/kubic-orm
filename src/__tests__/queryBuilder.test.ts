@@ -1,6 +1,6 @@
 // Tests
-import QueryBuilder from "@/query-builder/queryBuilder";
-import Model from "@/base-model/baseModel";
+import {QueryBuilder} from "@/query-builder/queryBuilder";
+import {Model} from "@/base-model/baseModel";
 
 
 // TODO: Rewrite unit tests for QueryBuilder

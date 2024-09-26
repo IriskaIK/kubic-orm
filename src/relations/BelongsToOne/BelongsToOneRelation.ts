@@ -1,7 +1,7 @@
 import {Relation} from "@/relations/Relation";
-import Model from "@/base-model/baseModel";
+import {Model} from "@/base-model/baseModel";
 import {Constructor, Join} from "@/types/query.types";
-import QueryBuilder from "@/query-builder/queryBuilder";
+import {QueryBuilder} from "@/query-builder/queryBuilder";
 
 export class BelongsToOneRelation<S, R extends Model> extends Relation<S, R>{
 
