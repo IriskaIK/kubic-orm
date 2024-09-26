@@ -182,18 +182,21 @@ export class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
         return this;
     }
 
+
     // public insert(data: Record<string, any>): QueryBuilder<T>  {
     //     this.CRUDOperation = 'insert';
     //     this.dataToSet = data;
     //     return this;
     // }
-    //
+
+
     // public update(data: Record<string, any>): QueryBuilder<T>  {
     //     this.CRUDOperation = 'update';
     //     this.dataToSet = data;
     //     return this;
     // }
-    //
+
+
     // public delete(): QueryBuilder<T>  {
     //     this.CRUDOperation = 'delete';
     //
