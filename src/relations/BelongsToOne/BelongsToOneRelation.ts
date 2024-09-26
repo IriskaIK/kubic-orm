@@ -9,6 +9,21 @@ export class BelongsToOneRelation<S, R extends Model> extends Relation<S, R>{
         super(sourceModelClass, relatedModelClass, columns);
     }
 
+    public getSourceIdentifierColumn() {
+        return this.sourceIdentiferColumn;
+    }
+
+    public getRelatedIdentifierColumn() {
+        return this.relatedIdentiferColumn;
+    }
+
+    public getSourceTableName() {
+        return this.sourceTableName;
+    }
+
+    public getRelatedTableName() {
+        return this.relatedTableName;
+    }
 
     public createJoinClause(): Join[] {
         return [{
