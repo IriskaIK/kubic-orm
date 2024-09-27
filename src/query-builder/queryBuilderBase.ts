@@ -54,7 +54,7 @@ class QueryBuilderBase<T extends Model> {
             logicalOperator : logicalOperator ? logicalOperator : undefined
         })
     }
-
+    //Test comment
     protected join(type: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL', table: string, on: string): QueryBuilderBase<T> {
         QueryBuilderValidator.validateTableName(table)
 
