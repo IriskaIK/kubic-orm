@@ -22,7 +22,7 @@ class QueryBuilderBase<T extends Model> {
             columns: [],
             conditions: [],
             joins: [],
-            distinct : false
+            distinct : false,
         }
     }
 
@@ -85,6 +85,14 @@ class QueryBuilderBase<T extends Model> {
     protected setDistinct(){
         this.query.distinct = true;
     }
+
+    public findById(column: string, id: string | number): QueryBuilderBase<T> {
+        // Validate the column name
+        QueryBuilderValidator.validateColumnName(column);
+        this.addCondition(column, "=", id.toString());
+        return this;
+    }
+
 
     // public async execute() : Promise<T[]> {
     //     const result = (await Connection.getInstance().query(this.toSQL())).rows

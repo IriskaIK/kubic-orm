@@ -94,6 +94,13 @@ describe('QueryBuilder', () => {
         expect(query).toBe(`SELECT DISTINCT "name", "age" FROM "testModel"`)
     });
 
+    test('should generate a valid SELECT query with findById', () => {
+        const query = new QueryBuilder(TestModel)
+            .findById('id', 1) // Assuming 'id' is a valid column in the model
+            .getSQL();
+
+        expect(query).toBe(`SELECT * FROM "testModel" WHERE "id" = "1"`);
+    });
 
 });
 
