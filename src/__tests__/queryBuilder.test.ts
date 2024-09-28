@@ -128,6 +128,16 @@ describe('QueryBuilder', () => {
         expect(query).toBe(`SELECT * FROM "testModel" WHERE "age" > "25" OR NOT "city" = "New York"`);
     });
 
+    test('should generate a valid SELECT query with findOne', () => {
+        const query = new QueryBuilder(TestModel)
+            .select(['id', 'name'])
+            .where('status', '=', 'active')
+            .findOne()
+            .getSQL();
+
+        expect(query).toBe(`SELECT "id", "name" FROM "testModel" WHERE "status" = "active" LIMIT 1`);
+    });
+
 });
 
 // TODO: Test invalid scenarios(write validator for queryBuilder)
