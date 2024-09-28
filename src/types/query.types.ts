@@ -14,7 +14,7 @@ export type LogicalOperator = "AND" | "OR";
 export type Condition = {
     column : Column,
     operator : Operator,
-    value? : Column | string,
+    value? : Column | string | string[] | Column[],
     compareColumn? : Column,
     logicalOperator? : LogicalOperator,
     nestedConditions? : Condition[],

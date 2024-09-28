@@ -45,7 +45,7 @@ class QueryBuilderBase<T extends Model> {
         this.query.columns.push(this.parseColumn(column))
     }
 
-    protected addCondition(column : string, operator : Operator, value? : string, compareColumn? : string, logicalOperator? : LogicalOperator){
+    protected addCondition(column : string, operator : Operator, value? : string | string[], compareColumn? : string, logicalOperator? : LogicalOperator){
         this.query.conditions.push({
             column : this.parseColumn(column),
             operator : operator,
@@ -86,20 +86,7 @@ class QueryBuilderBase<T extends Model> {
         this.query.distinct = true;
     }
 
-    public findById(column: string, id: string | number) {
-        // Validate the column name
-        QueryBuilderValidator.validateColumnName(column);
-        this.addCondition(column, "=", id.toString());
-        return this;
-    }
 
-    public findByIds(column: string, ids: (string | number)[]) {
-        // Validate the column name
-        QueryBuilderValidator.validateColumnName(column);
-        const stringIds = ids.map(id => id.toString());
-        this.addCondition(column, "IN", stringIds.join(', '));
-        return this;
-    }
 
 
 

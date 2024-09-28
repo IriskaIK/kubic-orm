@@ -85,6 +85,21 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
         return this;
     }
 
+    public findById(id: string | number) {
+        // Validate the column name
+        QueryBuilderValidator.validateColumnName("id");
+        this.addCondition("id", "=", id.toString());
+        return this;
+    }
+
+    public findByIds(ids: (string | number)[]) {
+        // Validate the column name
+        QueryBuilderValidator.validateColumnName("id");
+        const stringIds = ids.map(id => id.toString());
+        this.addCondition("id", "IN", stringIds);
+        return this;
+    }
+
     // public insert(data: Record<string, any>): QueryBuilder<T>  {
     //     this.CRUDOperation = 'insert';
     //     this.dataToSet = data;
