@@ -52,11 +52,14 @@ export abstract class Relation<S, R extends Model>{
     public abstract createJoinClause() : Join[]
     public abstract createQuery() : QueryBuilder<R>
 
-    constructor(sourceModelClass: Constructor<S>, relatedModelClass : Constructor<R>, columns : string[]){
+    constructor(sourceModelClass: Constructor<S>, relatedModelClass : Constructor<R>, columns : string[], relationName : string) {
         this.sourceModelClass = sourceModelClass
         this.relatedModelClass = relatedModelClass
         this.sourceTableName = sourceModelClass.tableName
         this.relatedTableName = relatedModelClass.tableName
+        this.relationName = relationName
+        this.relatedIdentiferColumn = sourceModelClass.relations[this.relationName].join.to
+        this.sourceIdentiferColumn = sourceModelClass.relations[this.relationName].join.from
         this.parseColumns(columns);
     }
 }
