@@ -110,13 +110,22 @@ describe('QueryBuilder', () => {
         expect(query).toBe(`SELECT * FROM "testModel" WHERE "id" IN (1, 2, 3)`);
     });
 
-    test('should handle multiple conditions with NOT', () => {
+    test('should handle multiple conditions with AND NOT', () => {
         const query = new QueryBuilder(TestModel)
             .where('age', '>', '25')
             .whereNot( 'city', '=', 'New York')
             .getSQL()
 
         expect(query).toBe(`SELECT * FROM "testModel" WHERE "age" > "25" AND NOT "city" = "New York"`);
+    });
+
+    test('should handle multiple conditions with OR NOT', () => {
+        const query = new QueryBuilder(TestModel)
+            .where('age', '>', '25')
+            .orWhereNot( 'city', '=', 'New York')
+            .getSQL()
+
+        expect(query).toBe(`SELECT * FROM "testModel" WHERE "age" > "25" OR NOT "city" = "New York"`);
     });
 
 });

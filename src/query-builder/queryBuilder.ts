@@ -87,6 +87,14 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
         return this;
     }
 
+    public orWhereNot(column: string, operator: Operator, value?: string, compareColumn?: string): QueryBuilder<T> {
+        QueryBuilderValidator.validateColumnName(column);
+        compareColumn && QueryBuilderValidator.validateColumnName(compareColumn);
+        this.addCondition(column, operator, value, compareColumn, "OR NOT");
+        return this;
+    }
+
+
     public distinct(): QueryBuilder<T>  {
         this.setDistinct();
         return this;
