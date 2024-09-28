@@ -80,8 +80,43 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
         return this;
     }
 
+    public whereNot(column: string, operator: Operator, value?: string, compareColumn?: string): QueryBuilder<T> {
+        QueryBuilderValidator.validateColumnName(column);
+        compareColumn && QueryBuilderValidator.validateColumnName(compareColumn);
+        this.addCondition(column, operator, value, compareColumn, "AND NOT");
+        return this;
+    }
+
+    public orWhereNot(column: string, operator: Operator, value?: string, compareColumn?: string): QueryBuilder<T> {
+        QueryBuilderValidator.validateColumnName(column);
+        compareColumn && QueryBuilderValidator.validateColumnName(compareColumn);
+        this.addCondition(column, operator, value, compareColumn, "OR NOT");
+        return this;
+    }
+
+
     public distinct(): QueryBuilder<T>  {
         this.setDistinct();
+        return this;
+    }
+
+    public findById(id: string | number) {
+        // Validate the column name
+        QueryBuilderValidator.validateColumnName("id");
+        this.addCondition("id", "=", id.toString());
+        return this;
+    }
+
+    public findByIds(ids: (string | number)[]) {
+        // Validate the column name
+        QueryBuilderValidator.validateColumnName("id");
+        const stringIds = ids.map(id => id.toString());
+        this.addCondition("id", "IN", stringIds);
+        return this;
+    }
+
+    public findOne(): QueryBuilder<T> {
+        this.limitTo(1);
         return this;
     }
 

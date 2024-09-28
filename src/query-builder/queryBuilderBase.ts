@@ -22,7 +22,7 @@ class QueryBuilderBase<T extends Model> {
             columns: [],
             conditions: [],
             joins: [],
-            distinct : false
+            distinct : false,
         }
     }
 
@@ -45,7 +45,7 @@ class QueryBuilderBase<T extends Model> {
         this.query.columns.push(this.parseColumn(column))
     }
 
-    protected addCondition(column : string, operator : Operator, value? : string, compareColumn? : string, logicalOperator? : LogicalOperator){
+    protected addCondition(column : string, operator : Operator, value? : string | string[], compareColumn? : string, logicalOperator? : LogicalOperator){
         this.query.conditions.push({
             column : this.parseColumn(column),
             operator : operator,
@@ -54,7 +54,7 @@ class QueryBuilderBase<T extends Model> {
             logicalOperator : logicalOperator ? logicalOperator : undefined
         })
     }
-
+    //Test comment
     protected join(type: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL', table: string, on: string): QueryBuilderBase<T> {
         QueryBuilderValidator.validateTableName(table)
 
@@ -85,6 +85,12 @@ class QueryBuilderBase<T extends Model> {
     protected setDistinct(){
         this.query.distinct = true;
     }
+
+
+
+
+
+
 
     // public async execute() : Promise<T[]> {
     //     const result = (await Connection.getInstance().query(this.toSQL())).rows

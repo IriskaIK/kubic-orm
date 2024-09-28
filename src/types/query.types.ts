@@ -9,12 +9,12 @@ export type Column = {
 
 
 // Conditions
-export type Operator = '=' | '<>' | '>' | '<' | '>=' | '<=';
-export type LogicalOperator = "AND" | "OR";
+export type Operator = '=' | '<>' | '>' | '<' | '>=' | '<=' | "IN";
+export type LogicalOperator = "AND" | "OR" | "AND NOT" | "OR NOT";
 export type Condition = {
     column : Column,
     operator : Operator,
-    value? : Column | string,
+    value? : Column | string | string[] | Column[],
     compareColumn? : Column,
     logicalOperator? : LogicalOperator,
     nestedConditions? : Condition[],
