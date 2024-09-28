@@ -94,6 +94,51 @@ describe('QueryBuilder', () => {
         expect(query).toBe(`SELECT DISTINCT "name", "age" FROM "testModel"`)
     });
 
+    test('should generate a valid SELECT query with findById', () => {
+        const query = new QueryBuilder(TestModel)
+            .findById(1) // Assuming 'id' is a valid column in the model
+            .getSQL();
+
+        expect(query).toBe(`SELECT * FROM "testModel" WHERE "id" = "1"`);
+    });
+
+    test('should generate a valid SELECT query with findByIds', () => {
+        const query = new QueryBuilder(TestModel)
+            .findByIds([1, 2, 3])
+            .getSQL();
+
+        expect(query).toBe(`SELECT * FROM "testModel" WHERE "id" IN (1, 2, 3)`);
+    });
+
+    test('should handle multiple conditions with AND NOT', () => {
+        const query = new QueryBuilder(TestModel)
+            .where('age', '>', '25')
+            .whereNot( 'city', '=', 'New York')
+            .getSQL()
+
+        expect(query).toBe(`SELECT * FROM "testModel" WHERE "age" > "25" AND NOT "city" = "New York"`);
+    });
+
+    test('should handle multiple conditions with OR NOT', () => {
+        const query = new QueryBuilder(TestModel)
+            .where('age', '>', '25')
+            .orWhereNot( 'city', '=', 'New York')
+            .getSQL()
+
+        expect(query).toBe(`SELECT * FROM "testModel" WHERE "age" > "25" OR NOT "city" = "New York"`);
+    });
+
+    test('should generate a valid SELECT query with findOne', () => {
+        const query = new QueryBuilder(TestModel)
+            .select(['id', 'name'])
+            .where('status', '=', 'active')
+            .findOne()
+            .getSQL();
+
+        expect(query).toBe(`SELECT "id", "name" FROM "testModel" WHERE "status" = "active" LIMIT 1`);
+    });
+
+
 
 });
 

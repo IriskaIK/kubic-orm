@@ -14,8 +14,16 @@ class QueryExecutor {
                 return `(${this.buildConditions(condition.nestedConditions)})`;
             }
 
-            const {column, operator, value, logicalOperator, compareColumn} = condition;
-            const conditionStr = `${this.getColumnSQLString(column)} ${operator} ${compareColumn ? this.getColumnSQLString(compareColumn) : `"${value}"`}`;
+            const { column, operator, value, logicalOperator, compareColumn } = condition;
+
+            let valueStr;
+            if (Array.isArray(value))
+                valueStr = `(${(value as string[]).map(v => `${v}`).join(', ')})`;
+            else
+                valueStr = compareColumn ? this.getColumnSQLString(compareColumn) : `"${value}"`;
+
+
+            const conditionStr = `${this.getColumnSQLString(column)} ${operator} ${valueStr}`;
             return logicalOperator ? `${logicalOperator} ${conditionStr}` : conditionStr;
         }).join(' ');
     }

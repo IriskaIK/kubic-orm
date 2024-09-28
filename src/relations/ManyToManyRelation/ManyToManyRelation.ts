@@ -5,8 +5,8 @@ import {QueryBuilder} from "@/query-builder/queryBuilder";
 
 export class ManyToManyRelation<S, R extends Model> extends Relation<S, R> {
 
-    constructor(sourceModelClass: Constructor<S>, relatedModelClass: Constructor<R>, columns: string[]) {
-        super(sourceModelClass, relatedModelClass, columns);
+    constructor(sourceModelClass: Constructor<S>, relatedModelClass: Constructor<R>, columns: string[], relationName : string) {
+        super(sourceModelClass, relatedModelClass, columns, relationName);
     }
 
     public createJoinClause(): Join[] {
@@ -15,9 +15,10 @@ export class ManyToManyRelation<S, R extends Model> extends Relation<S, R> {
             // TODO : add Error for not setting through values
             throw new Error('')
         }
+        const throughFrom = this.parseColumn(through.from)
+        const throughTo = this.parseColumn(through.to)
 
         return [
-            // First join: Source table -> Through table
             {
                 type: 'INNER',
                 tables : {
@@ -25,15 +26,8 @@ export class ManyToManyRelation<S, R extends Model> extends Relation<S, R> {
                     relatedTable : through.tableName
                 },
                 on: {
-                    leftColumn: {
-                        column: this.sourceIdentiferColumn, // Foreign key in source table
-                        parentTable: this.sourceTableName
-                    },
-                    rightColumn: {
-                        column: through.from,
-                        parentTable : through.tableName
-
-                    }
+                    leftColumn: this.sourceIdentifierColumn,
+                    rightColumn: throughFrom
                 }
             },
             {
@@ -43,14 +37,8 @@ export class ManyToManyRelation<S, R extends Model> extends Relation<S, R> {
                   relatedTable:  this.relatedTableName
                 },
                 on: {
-                    leftColumn: {
-                        column : through.to,
-                        parentTable : through.tableName
-                    },
-                    rightColumn: {
-                        column: this.relatedIdentiferColumn, // Primary key in related table
-                        parentTable: this.relatedTableName
-                    }
+                    leftColumn: throughTo,
+                    rightColumn: this.relatedIdentifierColumn
                 }
             }
         ];
