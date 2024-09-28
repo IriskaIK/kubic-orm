@@ -32,3 +32,12 @@ class RelatedModel extends Model {
     }
 }
 
+describe("Relations", ()=>{
+    test("", ()=>{
+        const relation = new BelongsToOneRelation(SourceModel, RelatedModel, [], 'relation_BelongsToOneRelation')
+        const joinClause = relation.createJoinClause()
+        // TODO: Write join
+        expect(joinClause).toBe(`INNER JOIN "related_table" ON "source_table"."id" = "related_table"."source_id"`)
+    })
+})
+
