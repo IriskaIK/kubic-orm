@@ -80,6 +80,13 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
         return this;
     }
 
+    public whereNot(column: string, operator: Operator, value?: string, compareColumn?: string): QueryBuilder<T> {
+        QueryBuilderValidator.validateColumnName(column);
+        compareColumn && QueryBuilderValidator.validateColumnName(compareColumn);
+        this.addCondition(column, operator, value, compareColumn, "AND NOT");
+        return this;
+    }
+
     public distinct(): QueryBuilder<T>  {
         this.setDistinct();
         return this;
@@ -99,6 +106,7 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
         this.addCondition("id", "IN", stringIds);
         return this;
     }
+
 
     // public insert(data: Record<string, any>): QueryBuilder<T>  {
     //     this.CRUDOperation = 'insert';

@@ -96,7 +96,7 @@ describe('QueryBuilder', () => {
 
     test('should generate a valid SELECT query with findById', () => {
         const query = new QueryBuilder(TestModel)
-            .findById('id', 1) // Assuming 'id' is a valid column in the model
+            .findById(1) // Assuming 'id' is a valid column in the model
             .getSQL();
 
         expect(query).toBe(`SELECT * FROM "testModel" WHERE "id" = "1"`);
@@ -104,10 +104,19 @@ describe('QueryBuilder', () => {
 
     test('should generate a valid SELECT query with findByIds', () => {
         const query = new QueryBuilder(TestModel)
-            .findByIds('id', [1, 2, 3])
+            .findByIds([1, 2, 3])
             .getSQL();
 
         expect(query).toBe(`SELECT * FROM "testModel" WHERE "id" IN (1, 2, 3)`);
+    });
+
+    test('should handle multiple conditions with NOT', () => {
+        const query = new QueryBuilder(TestModel)
+            .where('age', '>', '25')
+            .whereNot( 'city', '=', 'New York')
+            .getSQL()
+
+        expect(query).toBe(`SELECT * FROM "testModel" WHERE "age" > "25" AND NOT "city" = "New York"`);
     });
 
 });

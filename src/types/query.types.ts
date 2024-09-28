@@ -10,7 +10,7 @@ export type Column = {
 
 // Conditions
 export type Operator = '=' | '<>' | '>' | '<' | '>=' | '<=' | "IN";
-export type LogicalOperator = "AND" | "OR";
+export type LogicalOperator = "AND" | "OR" | "AND NOT";
 export type Condition = {
     column : Column,
     operator : Operator,
