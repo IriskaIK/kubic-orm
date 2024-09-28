@@ -138,6 +138,8 @@ describe('QueryBuilder', () => {
         expect(query).toBe(`SELECT "id", "name" FROM "testModel" WHERE "status" = "active" LIMIT 1`);
     });
 
+
+
 });
 
 // TODO: Test invalid scenarios(write validator for queryBuilder)
