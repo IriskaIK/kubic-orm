@@ -19,14 +19,8 @@ export class BelongsToOneRelation<S, R extends Model> extends Relation<S, R>{
                 relatedTable : this.relatedTableName
             },
             on: {
-                leftColumn: {
-                    column: this.sourceIdentiferColumn, // Foreign key
-                    parentTable: this.sourceTableName
-                },
-                rightColumn: {
-                    column: this.relatedIdentiferColumn, // Primary key
-                    parentTable: this.relatedTableName
-                }
+                leftColumn: this.sourceIdentifierColumn,
+                rightColumn: this.relatedIdentifierColumn
             }
         }];
     }

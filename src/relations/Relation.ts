@@ -11,41 +11,54 @@ export abstract class Relation<S, R extends Model>{
     protected sourceModelClass : Constructor<S>;
     protected relatedModelClass : Constructor<R>;
 
-    protected sourceIdentiferColumn : string = '';
-    protected relatedIdentiferColumn : string = '';
+    protected sourceIdentifierColumn : Column;
+    protected relatedIdentifierColumn : Column;
 
     protected toSelectColumns : Column[] = [];
 
 
-    private addColumn(column : string, table? : string) : void{
-        if(table){
-            this.toSelectColumns.push({
-                column : column,
-                parentTable : table
-            })
-            return;
-        }
-        this.toSelectColumns.push({
-            column : column,
-        })
-    }
+    // private addColumn(column : string, table? : string) : void{
+    //     if(table){
+    //         this.toSelectColumns.push({
+    //             column : column,
+    //             parentTable : table
+    //         })
+    //         return;
+    //     }
+    //     this.toSelectColumns.push({
+    //         column : column,
+    //     })
+    // }
+    //
+    // private parseColumns(columns : string[]) : void{
+    //     if(columns.length === 0 || (columns.length === 1 && columns[0] === '*')){
+    //         this.addColumn('*', this.sourceModelClass.tableName)
+    //         this.addColumn('*', this.relatedModelClass.tableName)
+    //         return;
+    //     }
+    //
+    //     columns.forEach((element) =>{
+    //         const [table, column] = element.split('.');
+    //         if(!column){
+    //             this.addColumn(element)
+    //         }else{
+    //             this.addColumn(element, table)
+    //         }
+    //     })
+    //
+    // }
 
-    private parseColumns(columns : string[]) : void{
-        if(columns.length === 0 || (columns.length === 1 && columns[0] === '*')){
-            this.addColumn('*', this.sourceModelClass.tableName)
-            this.addColumn('*', this.relatedModelClass.tableName)
-            return;
-        }
-
-        columns.forEach((element) =>{
-            const [table, column] = element.split('.');
-            if(!column){
-                this.addColumn(element)
-            }else{
-                this.addColumn(element, table)
+    protected parseColumn(column : string) : Column{
+        if(column.includes('.')){
+            const [table, col] = column.split('.')
+            return {
+                parentTable : table,
+                column : col
             }
-        })
-
+        }
+        return {
+            column : column
+        }
     }
 
 
@@ -55,11 +68,15 @@ export abstract class Relation<S, R extends Model>{
     constructor(sourceModelClass: Constructor<S>, relatedModelClass : Constructor<R>, columns : string[], relationName : string) {
         this.sourceModelClass = sourceModelClass
         this.relatedModelClass = relatedModelClass
+
         this.sourceTableName = sourceModelClass.tableName
         this.relatedTableName = relatedModelClass.tableName
+
         this.relationName = relationName
-        this.relatedIdentiferColumn = sourceModelClass.relations[this.relationName].join.to
-        this.sourceIdentiferColumn = sourceModelClass.relations[this.relationName].join.from
-        this.parseColumns(columns);
+
+        this.relatedIdentifierColumn = this.parseColumn(sourceModelClass.relations[this.relationName].join.to)
+        this.sourceIdentifierColumn = this.parseColumn(sourceModelClass.relations[this.relationName].join.from)
+
+        // this.parseColumns(columns);
     }
 }
