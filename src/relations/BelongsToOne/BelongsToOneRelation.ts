@@ -5,9 +5,10 @@ import QueryBuilder from "@/query-builder/queryBuilder";
 
 export class BelongsToOneRelation<S, R extends Model> extends Relation<S, R>{
 
-    constructor(sourceModelClass: Constructor<S>, relatedModelClass : Constructor<R>, columns : string[]) {
-        super(sourceModelClass, relatedModelClass, columns);
+    constructor(sourceModelClass: Constructor<S>, relatedModelClass: Constructor<R>, columns: string[], relationName : string) {
+        super(sourceModelClass, relatedModelClass, columns, relationName);
     }
+
 
 
     public createJoinClause(): Join[] {
