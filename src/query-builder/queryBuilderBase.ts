@@ -86,12 +86,23 @@ class QueryBuilderBase<T extends Model> {
         this.query.distinct = true;
     }
 
-    public findById(column: string, id: string | number): QueryBuilderBase<T> {
+    public findById(column: string, id: string | number) {
         // Validate the column name
         QueryBuilderValidator.validateColumnName(column);
         this.addCondition(column, "=", id.toString());
         return this;
     }
+
+    public findByIds(column: string, ids: (string | number)[]) {
+        // Validate the column name
+        QueryBuilderValidator.validateColumnName(column);
+        const stringIds = ids.map(id => id.toString());
+        this.addCondition(column, "IN", stringIds.join(', '));
+        return this;
+    }
+
+
+
 
 
     // public async execute() : Promise<T[]> {

@@ -102,6 +102,14 @@ describe('QueryBuilder', () => {
         expect(query).toBe(`SELECT * FROM "testModel" WHERE "id" = "1"`);
     });
 
+    test('should generate a valid SELECT query with findByIds', () => {
+        const query = new QueryBuilder(TestModel)
+            .findByIds('id', [1, 2, 3])
+            .getSQL();
+
+        expect(query).toBe(`SELECT * FROM "testModel" WHERE "id" IN (1, 2, 3)`);
+    });
+
 });
 
 // TODO: Test invalid scenarios(write validator for queryBuilder)
