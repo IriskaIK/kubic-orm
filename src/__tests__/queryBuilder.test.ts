@@ -129,7 +129,6 @@ describe('QueryBuilder', () => {
     });
 
 
-    //test commits #2
     test('should generate a valid SELECT query with findOne', () => {
         const query = new QueryBuilder(TestModel)
             .select(['id', 'name'])
@@ -140,6 +139,21 @@ describe('QueryBuilder', () => {
         expect(query).toBe(`SELECT "id", "name" FROM "testModel" WHERE "status" = "active" LIMIT 1`);
     });
 
+    /*
+    Test for whereNested:
+    test('should handle nested conditions with whereNested', () => {
+        const query = new QueryBuilder(TestModel)
+            .where('age', '>', '25')
+            .whereNested((qb) => {
+                qb.where('firstName', '=', 'John')
+                    .orWhere('lastName', '=', 'Doe');
+            })
+            .andWhere('status', '=', 'active')
+            .getSQL();
+
+        expect(query).toBe(`SELECT * FROM "testModel" WHERE "age" > "25" AND ("firstName" = "John" OR "lastName" = "Doe") AND "status" = "active"`);
+    });
+    */
 
 
 });

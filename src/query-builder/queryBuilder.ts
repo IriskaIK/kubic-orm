@@ -4,7 +4,7 @@ import Model from "@/base-model/baseModel";
 import QueryBuilderValidator from "@/utils/validators/queryBuilder.validator";
 
 import {RelationalMappings, Constructor} from "@/types/model.types";
-import {Operator} from "@/types/query.types";
+import {LogicalOperator, Operator} from "@/types/query.types";
 
 
 class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
@@ -94,6 +94,19 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
         return this;
     }
 
+
+    public whereNested(callback: (qb: QueryBuilder<T>) => void, logicalOperator: LogicalOperator = "AND"): QueryBuilder<T> {
+        const nestedQueryBuilder = new QueryBuilder<T>(this.query.model);
+        callback(nestedQueryBuilder);
+        this.query.conditions.push({
+            column: { column: '' },
+            operator: '=',
+            nestedConditions: nestedQueryBuilder.query.conditions,
+            logicalOperator: logicalOperator
+        });
+
+        return this;
+    }
 
     public distinct(): QueryBuilder<T>  {
         this.setDistinct();
