@@ -187,6 +187,22 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
         return this;
     }
 
+    public avg(column: string, aliasName: string): QueryBuilder<T> {
+        this.query.columns.push({
+            column: `AVG(${column})`,
+            alias: `${aliasName}`
+        });
+        return this;
+    }
+
+    public sum(column: string, aliasName: string): QueryBuilder<T> {
+        this.query.columns.push({
+            column: `SUM(${column})`,
+            alias: `${aliasName}`
+        });
+        return this;
+    }
+
 
 
     // public insert(data: Record<string, any>): QueryBuilder<T>  {
