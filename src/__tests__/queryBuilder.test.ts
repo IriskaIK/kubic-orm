@@ -128,6 +128,8 @@ describe('QueryBuilder', () => {
         expect(query).toBe(`SELECT * FROM "testModel" WHERE "age" > "25" OR NOT "city" = "New York"`);
     });
 
+
+    //test commits #2
     test('should generate a valid SELECT query with findOne', () => {
         const query = new QueryBuilder(TestModel)
             .select(['id', 'name'])
