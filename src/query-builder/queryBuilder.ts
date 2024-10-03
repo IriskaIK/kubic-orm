@@ -108,6 +108,22 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
         return this;
     }
 
+    public whereIn(column: string, values: (string | number)[]): QueryBuilder<T> {
+        QueryBuilderValidator.validateColumnName(column);
+
+        const stringValues = values.map(value => value.toString());
+
+        this.query.conditions.push({
+            column: { column: column },
+            operator: 'IN',
+            value: stringValues,
+        });
+
+        return this;
+    }
+
+
+
     public distinct(): QueryBuilder<T>  {
         this.setDistinct();
         return this;

@@ -139,6 +139,15 @@ describe('QueryBuilder', () => {
         expect(query).toBe(`SELECT "id", "name" FROM "testModel" WHERE "status" = "active" LIMIT 1`);
     });
 
+    test('should generate a valid SELECT query with WHERE IN clause', () => {
+        const query = new QueryBuilder(TestModel)
+            .select(['id', 'name'])
+            .whereIn('id', [1, 2, 3, 4])
+            .getSQL();
+
+        expect(query).toBe(`SELECT "id", "name" FROM "testModel" WHERE "id" IN (1, 2, 3, 4)`);
+    });
+
     /*
     Test for whereNested:
     test('should handle nested conditions with whereNested', () => {
@@ -154,8 +163,6 @@ describe('QueryBuilder', () => {
         expect(query).toBe(`SELECT * FROM "testModel" WHERE "age" > "25" AND ("firstName" = "John" OR "lastName" = "Doe") AND "status" = "active"`);
     });
     */
-
-
 });
 
 // TODO: Test invalid scenarios(write validator for queryBuilder)
