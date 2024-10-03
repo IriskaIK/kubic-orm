@@ -1,8 +1,9 @@
 import Model from "@/base-model/baseModel";
-import {Constructor, Column, Join} from "@/types/query.types";
+import { Column, Join} from "@/types/query.types";
+import {Constructor} from "@/types/model.types";
 import QueryBuilder from "@/query-builder/queryBuilder";
 
-export abstract class Relation<S, R extends Model>{
+export class Relation<S extends Model, R extends Model>{
     protected relationName : string = '';
 
     protected sourceTableName : string = '';
@@ -62,8 +63,12 @@ export abstract class Relation<S, R extends Model>{
     }
 
 
-    public abstract createJoinClause() : Join[]
-    public abstract createQuery() : QueryBuilder<R>
+    public createJoinClause() : Join[]{
+        throw new Error('createJoinClause must be implemented by child')
+    }
+    public createQuery() : QueryBuilder<R>{
+        throw new Error('createQuery must be implemented by child')
+    }
 
     constructor(sourceModelClass: Constructor<S>, relatedModelClass : Constructor<R>, columns : string[], relationName : string) {
         this.sourceModelClass = sourceModelClass

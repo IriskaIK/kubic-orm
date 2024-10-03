@@ -1,6 +1,9 @@
 import Connection from "@/database/Connection";
 import {Column, Condition, Join, JoinCondition, Query} from "@/types/query.types";
+import {Constructor} from "@/types/model.types";
 import Model from "@/base-model/baseModel";
+import logger from "@/utils/logger/logger";
+import {QueryResultsMapper} from "@/query-results-mapper/QueryResultsMapper";
 
 class QueryExecutor {
 
@@ -121,9 +124,19 @@ class QueryExecutor {
         return queryString;
     }
 
-    public static async execute<T extends Model>(query: Query<T>) {
-        console.log(this.toSQL(query))
-        // const result = (await Connection.getInstance().query(this.toSQL(query))).rows
+    public static async execute<T extends Model>(query: Query<T>) : Promise<T[]> {
+        const SQLQuery = this.toSQL(query)
+
+        logger.info(`Generated query: ${SQLQuery}`)
+
+
+        const result = (await Connection.getInstance().query(SQLQuery)).rows
+        logger.info(`Query results: ${JSON.stringify(result)}`)
+
+        const mappedInstances = QueryResultsMapper.mapResultsToModelInstances(result, query.model, query.relations)
+        logger.info(`Mapped instances: ${JSON.stringify(mappedInstances)}`)
+
+        return mappedInstances
     }
 
 }

@@ -5,6 +5,7 @@ import {RelationalMappings, Constructor} from "@/types/model.types";
 
 import {Query, Column, Operator, LogicalOperator} from "@/types/query.types";
 import QueryExecutor from "@/query-executor/QueryExecutor";
+import {BelongsToOneRelation} from "@/relations/BelongsToOne/BelongsToOneRelation";
 
 class QueryBuilderBase<T extends Model> {
 
@@ -12,6 +13,7 @@ class QueryBuilderBase<T extends Model> {
 
 
     protected query: Query<T>;
+
 
     constructor(modelClass: Constructor<T>) {
         QueryBuilderValidator.validateTableName(modelClass.tableName)
@@ -23,7 +25,10 @@ class QueryBuilderBase<T extends Model> {
             conditions: [],
             joins: [],
             distinct : false,
+            relations : []
         }
+
+
     }
 
 
@@ -41,7 +46,25 @@ class QueryBuilderBase<T extends Model> {
         }
     }
 
+    // private parseRelatedColumn(column : string) : Column{
+    //     const [table, col] = column.split('.')
+    //     return {column : col, parentTable : table, alias : `${table}_${col}`}
+    // }
+    //
+    // private isSourceParentTableColumn(column : string) : boolean{
+    //     if(column.includes('.')){
+    //         const [table, col] = column.split('.')
+    //         return table == this.query.table;
+    //
+    //     }
+    //     return true
+    // }
+
     protected addColumn(column : string){
+        // if(!this.isSourceParentTableColumn(column)){
+        //     this.query.columns.push(this.parseRelatedColumn(column))
+        //     return;
+        // }
         this.query.columns.push(this.parseColumn(column))
     }
 
@@ -87,21 +110,20 @@ class QueryBuilderBase<T extends Model> {
     }
 
 
+    protected handleJoinRelation(relationName : string){
+        const relation = this.query.model.relations[relationName]
+        const joinClause = new relation.relation(this.query.model, relation.model, [], relationName).createJoinClause()
 
-
-
-
-
-    // public async execute() : Promise<T[]> {
-    //     const result = (await Connection.getInstance().query(this.toSQL())).rows
-    //     return this.mapQueryResultsToModel(result);
-    // }
-
-    public async execute(){
-        await QueryExecutor.execute(this.query)
-        // console.log(this.query)
+        this.query.relations.push(relationName)
+        this.query.joins.push(...joinClause)
     }
 
+    public async execute() : Promise<T[]>{
+        const results = await QueryExecutor.execute(this.query)
+
+        return results
+
+    }
 
     public getSQL(){
         return QueryExecutor.toSQL(this.query)

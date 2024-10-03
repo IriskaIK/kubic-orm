@@ -120,6 +120,14 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
         return this;
     }
 
+    public withJoinRelations(relations : string[]) : QueryBuilder<T>{
+        relations.forEach((relation)=>{
+            this.handleJoinRelation(relation)
+        })
+        return this;
+    }
+
+
     // public insert(data: Record<string, any>): QueryBuilder<T>  {
     //     this.CRUDOperation = 'insert';
     //     this.dataToSet = data;

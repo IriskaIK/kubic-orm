@@ -1,5 +1,6 @@
 import {Relation} from "@/relations/Relation";
 import Model from "@/base-model/baseModel";
+import {Constructor} from "@/types/model.types";
 
 export type Column = {
     column : string,
@@ -53,30 +54,8 @@ export interface Query<T extends Model> {
     limit? : number;
     subQueries? : Query<T>; // needed to improve
     unions? : Query<T>[]; // needed to improve
+    relations : string[];
 }
 
-export interface Constructor<T> {
-    new (...args: any[]): T;
-    tableName: string;
-    relations : RelationalMappings;
-}
-
-export interface RelationMapping {
-    relation : typeof Relation,
-    model : typeof Model,
-    join : {
-        from : string,
-        to : string,
-        through? : {
-            to : string,
-            from : string,
-            tableName : string
-        }
-    }
-}
-
-export interface RelationalMappings {
-    [key : string] : RelationMapping
-}
 
 

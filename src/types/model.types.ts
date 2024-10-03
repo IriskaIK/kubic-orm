@@ -6,16 +6,17 @@ export interface RelationMapping {
     model: typeof Model;
 
     join: {
-        from: string;      // source table
-        to: string;        // related table
-        throughTable?: {        // Optional for ManyToMany
-            // TODO: Decide whether its needed or not!
-         //   tableName: string;  // intermediary table
-            from: string;       // Foreign key in through table linking to source table
-            to: string;         // Foreign key in through table linking to related table
+        from: string;
+        to: string;
+        through?: {
+            from: string;
+            to: string;
+            tableName : string;
         };
     };
 }
+
+
 
 export interface RelationalMappings {
     [key : string] : RelationMapping
