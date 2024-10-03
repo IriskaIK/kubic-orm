@@ -158,6 +158,15 @@ describe('QueryBuilder', () => {
         expect(query).toBe(`SELECT "id", "name" FROM "testModel" WHERE "age" > "25" OR "id" IN (1, 2, 3)`);
     });
 
+    test('should generate a valid SELECT query with WHERE NOT IN condition', () => {
+        const query = new QueryBuilder(TestModel)
+            .select(['*']) // Adjust the selection as necessary
+            .whereNotIn('id', [1, 2, 3])
+            .getSQL();
+
+        expect(query).toBe(`SELECT "*" FROM "testModel" WHERE "id" NOT IN (1, 2, 3)`);
+    });
+
     /*
     Test for whereNested:
     test('should handle nested conditions with whereNested', () => {

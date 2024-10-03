@@ -131,6 +131,15 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
         return this;
     }
 
+    public whereNotIn(column: string, values: (string | number)[]): QueryBuilder<T> {
+        QueryBuilderValidator.validateColumnName(column);
+
+        // Convert values to strings
+        const stringValues = values.map(value => value.toString());
+
+        this.addCondition(column, "NOT IN", stringValues);
+        return this;
+    }
 
     public distinct(): QueryBuilder<T>  {
         this.setDistinct();
