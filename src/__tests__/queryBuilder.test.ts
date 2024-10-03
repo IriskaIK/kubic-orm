@@ -148,6 +148,16 @@ describe('QueryBuilder', () => {
         expect(query).toBe(`SELECT "id", "name" FROM "testModel" WHERE "id" IN (1, 2, 3, 4)`);
     });
 
+    test('should generate a valid SELECT query with multiple OR conditions including WHERE IN clause', () => {
+        const query = new QueryBuilder(TestModel)
+            .select(['id', 'name'])
+            .where('age', '>', 25) // Adding a condition for age
+            .orWhereIn('id', [1, 2, 3]) // Using orWhereIn to check IDs
+            .getSQL();
+
+        expect(query).toBe(`SELECT "id", "name" FROM "testModel" WHERE "age" > "25" OR "id" IN (1, 2, 3)`);
+    });
+
     /*
     Test for whereNested:
     test('should handle nested conditions with whereNested', () => {

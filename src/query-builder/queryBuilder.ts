@@ -59,10 +59,11 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
         return this;
     }
 
-    public where(column : string, operator : Operator, value? : string, compareColumn? : string): QueryBuilder<T> {
+    public where(column : string, operator : Operator, value? : string | number, compareColumn? : string): QueryBuilder<T> {
         QueryBuilderValidator.validateColumnName(column);
         compareColumn && QueryBuilderValidator.validateColumnName(compareColumn);
-        this.addCondition(column, operator, value, compareColumn)
+        const stringValue = typeof value === "number" ? value.toString() : value;
+        this.addCondition(column, operator, stringValue, compareColumn)
         return this;
     }
 
@@ -111,7 +112,7 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
     public whereIn(column: string, values: (string | number)[]): QueryBuilder<T> {
         QueryBuilderValidator.validateColumnName(column);
 
-        const stringValues = values.map(value => value.toString());
+        const stringValues = values.map(value => {return value.toString();});
 
         this.query.conditions.push({
             column: { column: column },
@@ -122,6 +123,13 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
         return this;
     }
 
+    public orWhereIn(column: string, values: (string | number)[]): QueryBuilder<T> {
+        QueryBuilderValidator.validateColumnName(column);
+        const stringValues = values.map(value => value.toString());
+        this.addCondition(column, "IN", stringValues, undefined, "OR");
+
+        return this;
+    }
 
 
     public distinct(): QueryBuilder<T>  {
