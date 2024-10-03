@@ -3,7 +3,7 @@ import Model from "@/base-model/baseModel";
 import {RelationalMappings, Constructor} from "@/types/model.types";
 
 
-import {Query, Column, Operator, LogicalOperator} from "@/types/query.types";
+import {Query, Column, Operator, LogicalOperator, OrderBy} from "@/types/query.types";
 import QueryExecutor from "@/query-executor/QueryExecutor";
 
 class QueryBuilderBase<T extends Model> {
@@ -23,6 +23,8 @@ class QueryBuilderBase<T extends Model> {
             conditions: [],
             joins: [],
             distinct : false,
+            groupBy: [],
+            orderBy: [],
         }
     }
 

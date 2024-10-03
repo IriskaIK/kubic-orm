@@ -133,11 +133,16 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
 
     public whereNotIn(column: string, values: (string | number)[]): QueryBuilder<T> {
         QueryBuilderValidator.validateColumnName(column);
-
-        // Convert values to strings
         const stringValues = values.map(value => value.toString());
-
         this.addCondition(column, "NOT IN", stringValues);
+
+        return this;
+    }
+
+    public orWhereNotIn(column: string, values: (string | number)[]): QueryBuilder<T> {
+        QueryBuilderValidator.validateColumnName(column); // Validate the column name
+        const stringValues = values.map(value => value.toString()); // Ensure all values are strings
+        this.addCondition(column, "NOT IN", stringValues, undefined, "OR"); // Add the condition with the "OR" operator
         return this;
     }
 
@@ -165,6 +170,24 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
         this.limitTo(1);
         return this;
     }
+
+    public orderBy(...orderBys: { column: string; direction?: 'ASC' | 'DESC' }[]): QueryBuilder<T> {
+        orderBys.forEach(orderBy => {
+            this.query.orderBy.push({
+                column: orderBy.column,
+                direction: orderBy.direction || 'ASC'
+            });
+        });
+
+        return this;
+    }
+
+    public groupBy(...columns: string[]): QueryBuilder<T> {
+        this.query.groupBy.push(...columns);
+        return this;
+    }
+
+
 
     // public insert(data: Record<string, any>): QueryBuilder<T>  {
     //     this.CRUDOperation = 'insert';

@@ -151,8 +151,8 @@ describe('QueryBuilder', () => {
     test('should generate a valid SELECT query with multiple OR conditions including WHERE IN clause', () => {
         const query = new QueryBuilder(TestModel)
             .select(['id', 'name'])
-            .where('age', '>', 25) // Adding a condition for age
-            .orWhereIn('id', [1, 2, 3]) // Using orWhereIn to check IDs
+            .where('age', '>', 25)
+            .orWhereIn('id', [1, 2, 3])
             .getSQL();
 
         expect(query).toBe(`SELECT "id", "name" FROM "testModel" WHERE "age" > "25" OR "id" IN (1, 2, 3)`);
@@ -160,11 +160,20 @@ describe('QueryBuilder', () => {
 
     test('should generate a valid SELECT query with WHERE NOT IN condition', () => {
         const query = new QueryBuilder(TestModel)
-            .select(['*']) // Adjust the selection as necessary
             .whereNotIn('id', [1, 2, 3])
             .getSQL();
 
-        expect(query).toBe(`SELECT "*" FROM "testModel" WHERE "id" NOT IN (1, 2, 3)`);
+        expect(query).toBe(`SELECT * FROM "testModel" WHERE "id" NOT IN (1, 2, 3)`);
+    });
+
+    test('should generate a valid SELECT query with OR WHERE NOT IN condition', () => {
+        const query = new QueryBuilder(TestModel)
+            .select(['id', 'name'])
+            .where('age', '>', 25)
+            .orWhereNotIn('id', [1, 2, 3])
+            .getSQL();
+
+        expect(query).toBe(`SELECT "id", "name" FROM "testModel" WHERE "age" > "25" OR "id" NOT IN (1, 2, 3)`);
     });
 
     /*
