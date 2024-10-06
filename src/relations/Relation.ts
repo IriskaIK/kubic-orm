@@ -15,7 +15,10 @@ export class Relation<S extends Model, R extends Model>{
     protected sourceIdentifierColumn : Column;
     protected relatedIdentifierColumn : Column;
 
-    protected toSelectColumns : Column[] = [];
+    protected toSelectColumns : Column[] = [{
+        column : "*",
+        parentTable : this.relatedTableName
+    }];
 
 
     // private addColumn(column : string, table? : string) : void{

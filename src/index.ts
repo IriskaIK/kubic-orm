@@ -85,9 +85,19 @@ class User extends Model implements User {
 
 async function some() {
     const u = await User.$query()
-        .select(["id"])
-        // .withJoinRelations(['shipping_address'])
+        .select(["id", "first_name"])
+        .joinRelation('shipping_address', ((builder)=>{
+            builder.select(['id AS sa_id', "full_address"]);
+        }))
         .execute();
+
+
+    // const u = User.$query()
+    //     .select(["users.id", "users.first_name"])
+    //     .joinRelation('shipping_address', ((builder)=>{
+    //         builder
+    //             .select(['id', "full_address"]);
+    //     }))
 
     console.log(u)
 }

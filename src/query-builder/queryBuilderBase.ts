@@ -6,6 +6,7 @@ import {RelationalMappings, Constructor} from "@/types/model.types";
 import {Query, Column, Operator, LogicalOperator} from "@/types/query.types";
 import QueryExecutor from "@/query-executor/QueryExecutor";
 import {BelongsToOneRelation} from "@/relations/BelongsToOne/BelongsToOneRelation";
+import QueryBuilder from "@/query-builder/queryBuilder";
 
 class QueryBuilderBase<T extends Model> {
 
@@ -27,7 +28,8 @@ class QueryBuilderBase<T extends Model> {
             distinct : false,
             relations : [],
             orderBy : [],
-            groupBy : []
+            groupBy : [],
+            relationsQueries : {}
         }
 
 
@@ -111,23 +113,30 @@ class QueryBuilderBase<T extends Model> {
     }
 
 
-    protected handleJoinRelation(relationName : string){
+    protected handleJoinRelation(relationName : string, modifiers?: (qb: QueryBuilder<Model>) => void){
         const relation = this.query.model.relations[relationName]
         const joinClause = new relation.relation(this.query.model, relation.model, [], relationName).createJoinClause()
+
+        const q = new QueryBuilder(this.query.model.relations[relationName].model)
+        if(modifiers){
+            modifiers(q)
+            this.query.relationsQueries[relationName] = q.query;
+        }
 
         this.query.relations.push(relationName)
         this.query.joins.push(...joinClause)
     }
 
     public async execute() : Promise<T[]>{
-        const results = await QueryExecutor.execute(this.query)
+
+        const results = await (new QueryExecutor(this.query)).execute()
 
         return results
 
     }
 
     public getSQL(){
-        return QueryExecutor.toSQL(this.query)
+        return (new QueryExecutor(this.query)).toSQL()
     }
 
 

@@ -1,6 +1,7 @@
 import {Relation} from "@/relations/Relation";
 import Model from "@/base-model/baseModel";
 import {Constructor} from "@/types/model.types";
+import QueryBuilder from "@/query-builder/queryBuilder";
 
 export type Column = {
     column : string,
@@ -62,6 +63,7 @@ export interface Query<T extends Model> {
     subQueries? : Query<T>; // needed to improve
     unions? : Query<T>[]; // needed to improve
     relations : string[];
+    relationsQueries : Record<string, Query<Model>>;
 }
 
 
