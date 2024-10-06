@@ -128,6 +128,7 @@ describe('QueryBuilder', () => {
         expect(query).toBe(`SELECT * FROM "testModel" WHERE "age" > "25" OR NOT "city" = "New York"`);
     });
 
+
     test('should generate a valid SELECT query with findOne', () => {
         const query = new QueryBuilder(TestModel)
             .select(['id', 'name'])
@@ -138,8 +139,58 @@ describe('QueryBuilder', () => {
         expect(query).toBe(`SELECT "id", "name" FROM "testModel" WHERE "status" = "active" LIMIT 1`);
     });
 
+    test('should generate a valid SELECT query with WHERE IN clause', () => {
+        const query = new QueryBuilder(TestModel)
+            .select(['id', 'name'])
+            .whereIn('id', [1, 2, 3, 4])
+            .getSQL();
 
+        expect(query).toBe(`SELECT "id", "name" FROM "testModel" WHERE "id" IN (1, 2, 3, 4)`);
+    });
 
+    test('should generate a valid SELECT query with multiple OR conditions including WHERE IN clause', () => {
+        const query = new QueryBuilder(TestModel)
+            .select(['id', 'name'])
+            .where('age', '>', 25)
+            .orWhereIn('id', [1, 2, 3])
+            .getSQL();
+
+        expect(query).toBe(`SELECT "id", "name" FROM "testModel" WHERE "age" > "25" OR "id" IN (1, 2, 3)`);
+    });
+
+    test('should generate a valid SELECT query with WHERE NOT IN condition', () => {
+        const query = new QueryBuilder(TestModel)
+            .whereNotIn('id', [1, 2, 3])
+            .getSQL();
+
+        expect(query).toBe(`SELECT * FROM "testModel" WHERE "id" NOT IN (1, 2, 3)`);
+    });
+
+    test('should generate a valid SELECT query with OR WHERE NOT IN condition', () => {
+        const query = new QueryBuilder(TestModel)
+            .select(['id', 'name'])
+            .where('age', '>', 25)
+            .orWhereNotIn('id', [1, 2, 3])
+            .getSQL();
+
+        expect(query).toBe(`SELECT "id", "name" FROM "testModel" WHERE "age" > "25" OR "id" NOT IN (1, 2, 3)`);
+    });
+
+    /*
+    Test for whereNested:
+    test('should handle nested conditions with whereNested', () => {
+        const query = new QueryBuilder(TestModel)
+            .where('age', '>', '25')
+            .whereNested((qb) => {
+                qb.where('firstName', '=', 'John')
+                    .orWhere('lastName', '=', 'Doe');
+            })
+            .andWhere('status', '=', 'active')
+            .getSQL();
+
+        expect(query).toBe(`SELECT * FROM "testModel" WHERE "age" > "25" AND ("firstName" = "John" OR "lastName" = "Doe") AND "status" = "active"`);
+    });
+    */
 });
 
 // TODO: Test invalid scenarios(write validator for queryBuilder)

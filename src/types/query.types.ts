@@ -9,7 +9,7 @@ export type Column = {
 
 
 // Conditions
-export type Operator = '=' | '<>' | '>' | '<' | '>=' | '<=' | "IN";
+export type Operator = '=' | '<>' | '>' | '<' | '>=' | '<=' | "IN" | "NOT IN";
 export type LogicalOperator = "AND" | "OR" | "AND NOT" | "OR NOT";
 export type Condition = {
     column : Column,
@@ -35,6 +35,11 @@ export interface Join {
     on? : JoinCondition;
 }
 
+//OrderBy
+export interface OrderBy {
+    column: string;
+    direction: 'ASC' | 'DESC';
+}
 
 type SQLOperation = "SELECT" | "INSERT" | "UPDATE" | "DELETE";
 
@@ -51,6 +56,8 @@ export interface Query<T extends Model> {
     joins : Join[];
     offset? : number;
     limit? : number;
+    groupBy: string[];
+    orderBy: OrderBy[];
     subQueries? : Query<T>; // needed to improve
     unions? : Query<T>[]; // needed to improve
 }
