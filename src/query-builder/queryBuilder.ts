@@ -4,7 +4,7 @@ import Model from "@/base-model/baseModel";
 import QueryBuilderValidator from "@/utils/validators/queryBuilder.validator";
 
 import {RelationalMappings, Constructor} from "@/types/model.types";
-import {Operator} from "@/types/query.types";
+import {LogicalOperator, Operator} from "@/types/query.types";
 
 
 class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
@@ -59,10 +59,11 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
         return this;
     }
 
-    public where(column : string, operator : Operator, value? : string, compareColumn? : string): QueryBuilder<T> {
+    public where(column : string, operator : Operator, value? : string | number, compareColumn? : string): QueryBuilder<T> {
         QueryBuilderValidator.validateColumnName(column);
         compareColumn && QueryBuilderValidator.validateColumnName(compareColumn);
-        this.addCondition(column, operator, value, compareColumn)
+        const stringValue = typeof value === "number" ? value.toString() : value;
+        this.addCondition(column, operator, stringValue, compareColumn)
         return this;
     }
 
@@ -95,6 +96,56 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
     }
 
 
+    public whereNested(callback: (qb: QueryBuilder<T>) => void, logicalOperator: LogicalOperator = "AND"): QueryBuilder<T> {
+        const nestedQueryBuilder = new QueryBuilder<T>(this.query.model);
+        callback(nestedQueryBuilder);
+        this.query.conditions.push({
+            column: { column: '' },
+            operator: '=',
+            nestedConditions: nestedQueryBuilder.query.conditions,
+            logicalOperator: logicalOperator
+        });
+
+        return this;
+    }
+
+    public whereIn(column: string, values: (string | number)[]): QueryBuilder<T> {
+        QueryBuilderValidator.validateColumnName(column);
+
+        const stringValues = values.map(value => {return value.toString();});
+
+        this.query.conditions.push({
+            column: { column: column },
+            operator: 'IN',
+            value: stringValues,
+        });
+
+        return this;
+    }
+
+    public orWhereIn(column: string, values: (string | number)[]): QueryBuilder<T> {
+        QueryBuilderValidator.validateColumnName(column);
+        const stringValues = values.map(value => value.toString());
+        this.addCondition(column, "IN", stringValues, undefined, "OR");
+
+        return this;
+    }
+
+    public whereNotIn(column: string, values: (string | number)[]): QueryBuilder<T> {
+        QueryBuilderValidator.validateColumnName(column);
+        const stringValues = values.map(value => value.toString());
+        this.addCondition(column, "NOT IN", stringValues);
+
+        return this;
+    }
+
+    public orWhereNotIn(column: string, values: (string | number)[]): QueryBuilder<T> {
+        QueryBuilderValidator.validateColumnName(column); // Validate the column name
+        const stringValues = values.map(value => value.toString()); // Ensure all values are strings
+        this.addCondition(column, "NOT IN", stringValues, undefined, "OR"); // Add the condition with the "OR" operator
+        return this;
+    }
+
     public distinct(): QueryBuilder<T>  {
         this.setDistinct();
         return this;
@@ -126,6 +177,40 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
         })
         return this;
     }
+
+
+    public orderBy(...orderBys: { column: string; direction?: 'ASC' | 'DESC' }[]): QueryBuilder<T> {
+        orderBys.forEach(orderBy => {
+            this.query.orderBy.push({
+                column: orderBy.column,
+                direction: orderBy.direction || 'ASC'
+            });
+        });
+
+        return this;
+    }
+
+    public groupBy(...columns: string[]): QueryBuilder<T> {
+        this.query.groupBy.push(...columns);
+        return this;
+    }
+
+    public avg(column: string, aliasName: string): QueryBuilder<T> {
+        this.query.columns.push({
+            column: `AVG(${column})`,
+            alias: `${aliasName}`
+        });
+        return this;
+    }
+
+    public sum(column: string, aliasName: string): QueryBuilder<T> {
+        this.query.columns.push({
+            column: `SUM(${column})`,
+            alias: `${aliasName}`
+        });
+        return this;
+    }
+
 
 
     // public insert(data: Record<string, any>): QueryBuilder<T>  {
