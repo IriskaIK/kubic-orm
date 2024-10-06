@@ -91,14 +91,6 @@ async function some() {
         }))
         .execute();
 
-
-    // const u = User.$query()
-    //     .select(["users.id", "users.first_name"])
-    //     .joinRelation('shipping_address', ((builder)=>{
-    //         builder
-    //             .select(['id', "full_address"]);
-    //     }))
-
     console.log(u)
 }
 

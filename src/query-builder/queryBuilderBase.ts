@@ -26,7 +26,6 @@ class QueryBuilderBase<T extends Model> {
             conditions: [],
             joins: [],
             distinct : false,
-            relations : [],
             orderBy : [],
             groupBy : [],
             relationsQueries : {}
@@ -123,7 +122,6 @@ class QueryBuilderBase<T extends Model> {
             this.query.relationsQueries[relationName] = q.query;
         }
 
-        this.query.relations.push(relationName)
         this.query.joins.push(...joinClause)
     }
 

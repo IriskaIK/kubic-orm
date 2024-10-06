@@ -6,15 +6,37 @@ import logger from "@/utils/logger/logger";
 import {QueryResultsMapper} from "@/query-results-mapper/QueryResultsMapper";
 import QueryBuilderBase from "@/query-builder/queryBuilderBase";
 
+type ColumnNameReference = {
+    column : string,
+    alias? : string,
+}
+
 class QueryExecutor<T extends Model> {
     private query : Query<T>;
+    private mappedResultModelPrototype : Record<string, ColumnNameReference[]> = {
+        'origin' : []
+    };
+
+
+
 
 
     constructor(query: Query<T>) {
         this.query = query;
     }
 
-    private getColumnSQLString(column: Column) {
+    private mapColumnNameToResultModelPrototype(column: string, relationName? : string, alias? : string){
+        if(relationName){
+            this.mappedResultModelPrototype[relationName].push({column, alias});
+        }else{
+            this.mappedResultModelPrototype['origin'].push({column, alias});
+        }
+    }
+
+
+
+
+    private getColumnSQLString(column: Column, relationName? : string) {
         return `"${column.parentTable ? column.parentTable + '"."' : ''}${column.column}"${column.alias ? ` AS "${column.alias}"` : ""}`
     }
 
@@ -25,24 +47,32 @@ class QueryExecutor<T extends Model> {
         return column
     }
 
-    private selectAllColumns(query : Query<Model>){
+    private selectAllColumns(query : Query<Model>, relationName? : string){
         let columnsArray: string[] = []
         query.model.columns.forEach(column => {
             columnsArray.push(`"${query.table}"."${column}"`)
+            this.mapColumnNameToResultModelPrototype(column, relationName)
         })
         return columnsArray
     }
 
-    private groupColumnsByTableName(query : Query<Model>) : string[]{
+    private groupColumnsByTableName(query : Query<Model>, relationName? : string) : string[]{
         let columnsArray: string[] = []
         if(query.columns.length === 0){
-            return this.selectAllColumns(query)
+            columnsArray = this.selectAllColumns(query, relationName)
+            return columnsArray
         }
         query.columns.forEach((column) =>{
             if(column.column === '*'){
-                return this.selectAllColumns(query)
+                columnsArray = this.selectAllColumns(query, relationName)
+                return columnsArray
             }
-            columnsArray.push(this.getColumnSQLString(this.assignTableNameToColumn(column, query.table)))
+            if(column.alias){
+                this.mapColumnNameToResultModelPrototype(column.column, relationName, column.alias)
+            }else{
+                this.mapColumnNameToResultModelPrototype(column.column, relationName)
+            }
+            columnsArray.push(this.getColumnSQLString(this.assignTableNameToColumn(column, query.table), relationName))
         })
         return columnsArray
     }
@@ -53,7 +83,8 @@ class QueryExecutor<T extends Model> {
         columnsArray = columnsArray.concat(this.groupColumnsByTableName(this.query));
 
         for(const [key, value] of Object.entries(this.query.relationsQueries)){
-            columnsArray = columnsArray.concat(this.groupColumnsByTableName(value))
+            this.mappedResultModelPrototype[key] = [];
+            columnsArray = columnsArray.concat(this.groupColumnsByTableName(value, key))
         }
 
         return `SELECT ${distinct}${columnsArray.join(', ')} FROM "${this.query.table}"`
@@ -143,13 +174,17 @@ class QueryExecutor<T extends Model> {
     public async execute() : Promise<T[]> {
         const SQLQuery = this.toSQL()
 
+        console.log(this.mappedResultModelPrototype)
+
         logger.info(`Generated query: ${SQLQuery}`)
 
         const result = (await Connection.getInstance().query(SQLQuery)).rows
         logger.info(`Query results: ${JSON.stringify(result)}`)
 
-        const mappedInstances = QueryResultsMapper.mapResultsToModelInstances(result, this.query.model, this.query.relations)
+        const mappedInstances = QueryResultsMapper.mapResultsToModelInstances(result, this.query.model, this.query.relationsQueries)
         logger.info(`Mapped instances: ${JSON.stringify(mappedInstances)}`)
+
+
 
         return mappedInstances
     }

@@ -62,7 +62,7 @@ export interface Query<T extends Model> {
     orderBy: OrderBy[];
     subQueries? : Query<T>; // needed to improve
     unions? : Query<T>[]; // needed to improve
-    relations : string[];
+    // relations : string[];
     relationsQueries : Record<string, Query<Model>>;
 }
 
