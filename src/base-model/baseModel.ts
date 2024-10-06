@@ -16,6 +16,13 @@ class Model {
         return {}
     }
 
+    // TODO: rewrite this when schemas and migration will be implemented
+    static get columns() : string[]{
+        throw new Error("Children must implement this method.")
+    }
+
+
+
     public static $query<T extends Model>(this: Constructor<T>): QueryBuilder<T> {
         return new QueryBuilder(this);
     }

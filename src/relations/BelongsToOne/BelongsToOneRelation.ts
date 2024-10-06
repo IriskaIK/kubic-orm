@@ -14,7 +14,7 @@ export class BelongsToOneRelation<S extends Model, R extends Model> extends Rela
 
     public createJoinClause(): Join[] {
         return [{
-            type: 'INNER',
+            type: 'LEFT',
             tables : {
                 sourceTable : this.sourceTableName,
                 relatedTable : this.relatedTableName

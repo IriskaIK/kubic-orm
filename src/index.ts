@@ -35,6 +35,16 @@ class ShippingAddress extends Model implements ShippingAddress {
     static get tableName() {
         return "shippingAddress"
     }
+
+    static get columns(){
+        return [
+            'id',
+            'full_address',
+            'region_id',
+            'city_id',
+            'postOffice_id'
+        ]
+    }
 }
 
 class User extends Model implements User {
@@ -55,12 +65,28 @@ class User extends Model implements User {
         }
     }
 
+    static get columns(){
+        return [
+            'id',
+            'first_name',
+            'email',
+            'password',
+            'last_name',
+            'phone',
+            'shippingAddress_id',
+            'image_id',
+            'type',
+            'created_at',
+            'updated_at'
+        ]
+    }
+
 }
 
 async function some() {
     const u = await User.$query()
-        .select(["users.first_name", "users.id", "shippingAddress.full_address", "last_name"])
-        .withJoinRelations(['shipping_address'])
+        .select(["id"])
+        // .withJoinRelations(['shipping_address'])
         .execute();
 
     console.log(u)

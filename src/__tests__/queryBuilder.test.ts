@@ -16,6 +16,16 @@ class TestModel extends Model implements TestModel {
     static get tableName() {
         return "testModel"
     }
+
+    static get columns(){
+        return [
+            'id',
+            'region',
+            'city',
+            'postOffice'
+        ]
+    }
+
 }
 
 describe('QueryBuilder', () => {
@@ -24,7 +34,7 @@ describe('QueryBuilder', () => {
             .select(['id', 'name'])
             .where('age', '>', '25')
             .getSQL()
-        expect(query).toBe(`SELECT "id", "name" FROM "testModel" WHERE "age" > "25"`);
+        expect(query).toBe(`SELECT "testModel"."id", "testModel"."name" FROM "testModel" WHERE "age" > "25"`);
     });
 
 
@@ -32,7 +42,7 @@ describe('QueryBuilder', () => {
         const query = new QueryBuilder(TestModel)
             .select(['id AS userId', 'name'])
             .getSQL()
-        expect(query).toBe(`SELECT "id" AS "userId", "name" FROM "testModel"`);
+        expect(query).toBe(`SELECT "testModel"."id" AS "userId", "testModel"."name" FROM "testModel"`);
     });
 
     test('should handle multiple conditions with AND', () => {
@@ -41,7 +51,7 @@ describe('QueryBuilder', () => {
             .andWhere('status', '=', 'active')
             .getSQL();
 
-        expect(query).toBe(`SELECT * FROM "testModel" WHERE "age" > "25" AND "status" = "active"`);
+        expect(query).toBe(`SELECT "testModel"."id", "testModel"."region", "testModel"."city", "testModel"."postOffice" FROM "testModel" WHERE "age" > "25" AND "status" = "active"`);
     });
 
     test('should handle multiple conditions with OR', () => {
@@ -50,7 +60,7 @@ describe('QueryBuilder', () => {
             .orWhere( 'city', '=', 'New York')
             .getSQL()
 
-        expect(query).toBe(`SELECT * FROM "testModel" WHERE "age" > "25" OR "city" = "New York"`);
+        expect(query).toBe(`SELECT "testModel"."id", "testModel"."region", "testModel"."city", "testModel"."postOffice" FROM "testModel" WHERE "age" > "25" OR "city" = "New York"`);
     });
 
     // test('should handle nested conditions', () => {
@@ -82,7 +92,7 @@ describe('QueryBuilder', () => {
             .offsetBy(5)
             .getSQL();
 
-        expect(query).toBe(`SELECT * FROM "testModel" LIMIT 10 OFFSET 5`);
+        expect(query).toBe(`SELECT "testModel"."id", "testModel"."region", "testModel"."city", "testModel"."postOffice" FROM "testModel" LIMIT 10 OFFSET 5`);
     });
 
     test('should generate a SELECT DISTINCT query', () => {
@@ -91,7 +101,7 @@ describe('QueryBuilder', () => {
             .distinct()
             .getSQL();
 
-        expect(query).toBe(`SELECT DISTINCT "name", "age" FROM "testModel"`)
+        expect(query).toBe(`SELECT DISTINCT "testModel"."name", "testModel"."age" FROM "testModel"`)
     });
 
     test('should generate a valid SELECT query with findById', () => {
@@ -99,7 +109,7 @@ describe('QueryBuilder', () => {
             .findById(1) // Assuming 'id' is a valid column in the model
             .getSQL();
 
-        expect(query).toBe(`SELECT * FROM "testModel" WHERE "id" = "1"`);
+        expect(query).toBe(`SELECT "testModel"."id", "testModel"."region", "testModel"."city", "testModel"."postOffice" FROM "testModel" WHERE "id" = "1"`);
     });
 
     test('should generate a valid SELECT query with findByIds', () => {
@@ -107,7 +117,7 @@ describe('QueryBuilder', () => {
             .findByIds([1, 2, 3])
             .getSQL();
 
-        expect(query).toBe(`SELECT * FROM "testModel" WHERE "id" IN (1, 2, 3)`);
+        expect(query).toBe(`SELECT "testModel"."id", "testModel"."region", "testModel"."city", "testModel"."postOffice" FROM "testModel" WHERE "id" IN (1, 2, 3)`);
     });
 
     test('should handle multiple conditions with AND NOT', () => {
@@ -116,7 +126,7 @@ describe('QueryBuilder', () => {
             .whereNot( 'city', '=', 'New York')
             .getSQL()
 
-        expect(query).toBe(`SELECT * FROM "testModel" WHERE "age" > "25" AND NOT "city" = "New York"`);
+        expect(query).toBe(`SELECT "testModel"."id", "testModel"."region", "testModel"."city", "testModel"."postOffice" FROM "testModel" WHERE "age" > "25" AND NOT "city" = "New York"`);
     });
 
     test('should handle multiple conditions with OR NOT', () => {
@@ -125,7 +135,7 @@ describe('QueryBuilder', () => {
             .orWhereNot( 'city', '=', 'New York')
             .getSQL()
 
-        expect(query).toBe(`SELECT * FROM "testModel" WHERE "age" > "25" OR NOT "city" = "New York"`);
+        expect(query).toBe(`SELECT "testModel"."id", "testModel"."region", "testModel"."city", "testModel"."postOffice" FROM "testModel" WHERE "age" > "25" OR NOT "city" = "New York"`);
     });
 
     test('should generate a valid SELECT query with findOne', () => {
@@ -135,7 +145,7 @@ describe('QueryBuilder', () => {
             .findOne()
             .getSQL();
 
-        expect(query).toBe(`SELECT "id", "name" FROM "testModel" WHERE "status" = "active" LIMIT 1`);
+        expect(query).toBe(`SELECT "testModel"."id", "testModel"."name" FROM "testModel" WHERE "status" = "active" LIMIT 1`);
     });
 
 

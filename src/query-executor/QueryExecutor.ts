@@ -4,73 +4,42 @@ import {Constructor} from "@/types/model.types";
 import Model from "@/base-model/baseModel";
 import logger from "@/utils/logger/logger";
 import {QueryResultsMapper} from "@/query-results-mapper/QueryResultsMapper";
+import {ColumnMapper} from "@/query-executor/ColumnMapper";
+import {ConditionMapper} from "@/query-executor/ConditionMapper";
 
-class QueryExecutor {
+class QueryExecutor<T extends Model> {
 
     private static getColumnSQLString(column: Column) {
+        if(column.column == '*'){
+            return `*`
+        }
         return `"${column.parentTable ? column.parentTable + '"."' : ''}${column.column}"${column.alias ? ` AS "${column.alias}"` : ""}`
     }
 
-    private static buildConditions(conditions: Condition[]): string {
-        return conditions.map(condition => {
-            if (condition.nestedConditions) {
-                return `(${this.buildConditions(condition.nestedConditions)})`;
-            }
-
-            const { column, operator, value, logicalOperator, compareColumn } = condition;
-
-            let valueStr;
-            if (Array.isArray(value))
-                valueStr = `(${(value as string[]).map(v => `${v}`).join(', ')})`;
-            else
-                valueStr = compareColumn ? this.getColumnSQLString(compareColumn) : `"${value}"`;
-
-
-            const conditionStr = `${this.getColumnSQLString(column)} ${operator} ${valueStr}`;
-            return logicalOperator ? `${logicalOperator} ${conditionStr}` : conditionStr;
-        }).join(' ');
+    private static buildSelectClause<T extends Model>(query : Query<T>) {
+        const distinct = query.distinct ? "DISTINCT " : "";
+        const columnMapper = new ColumnMapper(query)
+        return `SELECT ${distinct}${columnMapper.groupColumns().join(', ')} FROM "${query.table}"`
     }
+
 
     private static buildJoinOnClause(on: JoinCondition) {
         return `${this.getColumnSQLString(on.leftColumn)} = ${this.getColumnSQLString(on.rightColumn)}`
     }
 
-    private static buildSelectClause(columns: Column[], tableName: string, isDistinct: boolean) {
-        const distinct = isDistinct ? "DISTINCT " : "";
-        let columnsArray: string[] = []
-
-        if(columns.length === 0){
-            return `SELECT ${distinct}* FROM "${tableName}"`
+    private static buildWhereClause<T extends Model>(query : Query<T>) {
+        let queryString: string = '';
+        if (query.conditions.length) {
+            const conditionMapper = new ConditionMapper(query);
+            const conditionsString = conditionMapper.groupConditions(query.conditions)
+            queryString += ` WHERE ${conditionsString}`;
         }
-        columns.forEach((column) => {
-            columnsArray.push(this.getColumnSQLString(column))
-        })
-        return `SELECT ${distinct}${columnsArray.join(', ')} FROM "${tableName}"`
-    }
-
-    private static buildWhereClause(conditions: Condition[]) {
-        // if(this.CRUDOperation === 'insert'){
-        //     const error = new IncompatibleActionError("Cannot use WHERE clause with INSERT operation");
-        //     logger.error(error);
-        //     throw error;
-        // }
-
-
-        let query: string = '';
-        if (conditions.length) {
-            const conditionsString = this.buildConditions(conditions);
-            query += ` WHERE ${conditionsString}`;
-        }
-        return query;
+        return queryString;
     }
 
 
     private static buildJoinClause(joins: Join[]) {
-        // if(this.CRUDOperation !== 'select'){
-        //     const error = new IncompatibleActionError(`Cannot use JOIN clause with ${this.CRUDOperation.toUpperCase()} operation`);
-        //     logger.error(error);
-        //     throw error;
-        // }
+
 
 
         let query: string = '';
@@ -84,11 +53,7 @@ class QueryExecutor {
     }
 
     private static buildOffsetClause(offset: number | undefined) {
-        // if(this.CRUDOperation !== 'select'){
-        //     const error = new IncompatibleActionError(`Cannot use OFFSET with ${this.CRUDOperation.toUpperCase()} operation`);
-        //     logger.error(error);
-        //     throw error;
-        // }
+
 
         let query: string = '';
 
@@ -99,11 +64,6 @@ class QueryExecutor {
     }
 
     private static buildLimitClause(limit: number | undefined) {
-        // if(this.CRUDOperation !== 'select'){
-        //     const error = new IncompatibleActionError(`Cannot use LIMIT with ${this.CRUDOperation.toUpperCase()} operation`);
-        //     logger.error(error);
-        //     throw error;
-        // }
 
         let query: string = '';
 
@@ -116,9 +76,9 @@ class QueryExecutor {
     // TODO: change to private. Public only for tests
     public static toSQL<T extends Model>(query: Query<T>): string {
         let queryString = '';
-        queryString += this.buildSelectClause(query.columns, query.table, query.distinct);
+        queryString += this.buildSelectClause(query);
         queryString += this.buildJoinClause(query.joins);
-        queryString += this.buildWhereClause(query.conditions);
+        queryString += this.buildWhereClause(query);
         queryString += this.buildLimitClause(query.limit);
         queryString += this.buildOffsetClause(query.offset);
         return queryString;

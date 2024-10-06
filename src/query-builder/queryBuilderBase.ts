@@ -46,27 +46,25 @@ class QueryBuilderBase<T extends Model> {
         }
     }
 
-    // private parseRelatedColumn(column : string) : Column{
-    //     const [table, col] = column.split('.')
-    //     return {column : col, parentTable : table, alias : `${table}_${col}`}
-    // }
-    //
-    // private isSourceParentTableColumn(column : string) : boolean{
-    //     if(column.includes('.')){
-    //         const [table, col] = column.split('.')
-    //         return table == this.query.table;
-    //
-    //     }
-    //     return true
-    // }
+    private checkForAmbiguousColumns(column : Column) : boolean{
+        return this.query.columns.some((col)=>{
+            return col.column === column.column && col.parentTable === column.parentTable && col.alias === column.alias
+        })
+    }
 
     protected addColumn(column : string){
-        // if(!this.isSourceParentTableColumn(column)){
-        //     this.query.columns.push(this.parseRelatedColumn(column))
-        //     return;
-        // }
-        this.query.columns.push(this.parseColumn(column))
+
+        const parsedColumn = this.parseColumn(column)
+
+        if(this.checkForAmbiguousColumns(parsedColumn)){
+            // TODO: log an error
+            throw new Error(`Ambiguous columns: ${column}`)
+        }
+
+        this.query.columns.push(parsedColumn)
     }
+
+
 
     protected addCondition(column : string, operator : Operator, value? : string | string[], compareColumn? : string, logicalOperator? : LogicalOperator){
         this.query.conditions.push({
@@ -77,7 +75,8 @@ class QueryBuilderBase<T extends Model> {
             logicalOperator : logicalOperator ? logicalOperator : undefined
         })
     }
-    //Test comment
+
+
     protected join(type: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL', table: string, on: string): QueryBuilderBase<T> {
         QueryBuilderValidator.validateTableName(table)
 

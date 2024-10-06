@@ -26,4 +26,5 @@ export interface Constructor<T> {
     new (...args: any[]): T;
     tableName: string;
     relations : RelationalMappings;
+    columns : string[];
 }
