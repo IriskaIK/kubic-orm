@@ -25,7 +25,9 @@ class QueryBuilderBase<T extends Model> {
             conditions: [],
             joins: [],
             distinct : false,
-            relations : []
+            relations : [],
+            orderBy : [],
+            groupBy : []
         }
 
 
