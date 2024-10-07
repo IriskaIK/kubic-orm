@@ -5,19 +5,13 @@ import Model from "@/base-model/baseModel";
 import logger from "@/utils/logger/logger";
 import {QueryResultsMapper} from "@/query-results-mapper/QueryResultsMapper";
 import QueryBuilderBase from "@/query-builder/queryBuilderBase";
-
-type ColumnNameReference = {
-    column : string,
-    alias? : string,
-}
+import {ColumnNameReference, ResultMappingColumnPrototype} from "@/types/mapper.types";
 
 class QueryExecutor<T extends Model> {
     private query : Query<T>;
-    private mappedResultModelPrototype : Record<string, ColumnNameReference[]> = {
+    private mappedResultModelPrototype : ResultMappingColumnPrototype = {
         'origin' : []
     };
-
-
 
 
 
@@ -181,7 +175,7 @@ class QueryExecutor<T extends Model> {
         const result = (await Connection.getInstance().query(SQLQuery)).rows
         logger.info(`Query results: ${JSON.stringify(result)}`)
 
-        const mappedInstances = QueryResultsMapper.mapResultsToModelInstances(result, this.query.model, this.query.relationsQueries)
+        const mappedInstances = QueryResultsMapper.mapResultsToModelInstances(result, this.query.model, this.query.relationsQueries, this.mappedResultModelPrototype)
         logger.info(`Mapped instances: ${JSON.stringify(mappedInstances)}`)
 
 
