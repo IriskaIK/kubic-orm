@@ -182,6 +182,7 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
         return this;
     }
 
+
     public groupBy(...columns: string[]): QueryBuilder<T> {
         this.query.groupBy.push(...columns);
         return this;
@@ -200,6 +201,11 @@ class QueryBuilder<T extends Model> extends QueryBuilderBase<T> {
             column: `SUM(${column})`,
             alias: `${aliasName}`
         });
+        return this;
+    }
+
+    public joinRelation(relation : string, modifiers?: (qb: QueryBuilder<Model>) => void) : QueryBuilder<T>{
+        this.handleJoinRelation(relation, modifiers)
         return this;
     }
 

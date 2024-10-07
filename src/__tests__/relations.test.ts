@@ -60,7 +60,7 @@ describe('Relations', () => {
         const relation = new BelongsToOneRelation(SourceModel, RelatedModel, [], 'Test_BelongsToOneRelation')
         const joinClause = relation.createJoinClause()
         expect(joinClause).toStrictEqual([{
-            type: "INNER",
+            type: "LEFT",
             tables: {
                 sourceTable: "source_table",
                 relatedTable: "related_table"

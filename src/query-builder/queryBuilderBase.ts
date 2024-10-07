@@ -3,8 +3,10 @@ import Model from "@/base-model/baseModel";
 import {RelationalMappings, Constructor} from "@/types/model.types";
 
 
-import {Query, Column, Operator, LogicalOperator, OrderBy} from "@/types/query.types";
+import {Query, Column, Operator, LogicalOperator} from "@/types/query.types";
 import QueryExecutor from "@/query-executor/QueryExecutor";
+import {BelongsToOneRelation} from "@/relations/BelongsToOne/BelongsToOneRelation";
+import QueryBuilder from "@/query-builder/queryBuilder";
 
 class QueryBuilderBase<T extends Model> {
 
@@ -12,6 +14,7 @@ class QueryBuilderBase<T extends Model> {
 
 
     protected query: Query<T>;
+
 
     constructor(modelClass: Constructor<T>) {
         QueryBuilderValidator.validateTableName(modelClass.tableName)
@@ -23,9 +26,12 @@ class QueryBuilderBase<T extends Model> {
             conditions: [],
             joins: [],
             distinct : false,
-            groupBy: [],
-            orderBy: [],
+            orderBy : [],
+            groupBy : [],
+            relationsQueries : {}
         }
+
+
     }
 
 
@@ -43,9 +49,25 @@ class QueryBuilderBase<T extends Model> {
         }
     }
 
-    protected addColumn(column : string){
-        this.query.columns.push(this.parseColumn(column))
+    private checkForAmbiguousColumns(column : Column) : boolean{
+        return this.query.columns.some((col)=>{
+            return col.column === column.column && col.parentTable === column.parentTable && col.alias === column.alias
+        })
     }
+
+    protected addColumn(column : string){
+
+        const parsedColumn = this.parseColumn(column)
+
+        if(this.checkForAmbiguousColumns(parsedColumn)){
+            // TODO: log an error
+            throw new Error(`Ambiguous columns: ${column}`)
+        }
+
+        this.query.columns.push(parsedColumn)
+    }
+
+
 
     protected addCondition(column : string, operator : Operator, value? : string | string[], compareColumn? : string, logicalOperator? : LogicalOperator){
         this.query.conditions.push({
@@ -56,7 +78,8 @@ class QueryBuilderBase<T extends Model> {
             logicalOperator : logicalOperator ? logicalOperator : undefined
         })
     }
-    //Test comment
+
+
     protected join(type: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL', table: string, on: string): QueryBuilderBase<T> {
         QueryBuilderValidator.validateTableName(table)
 
@@ -89,24 +112,29 @@ class QueryBuilderBase<T extends Model> {
     }
 
 
+    protected handleJoinRelation(relationName : string, modifiers?: (qb: QueryBuilder<Model>) => void){
+        const relation = this.query.model.relations[relationName]
+        const joinClause = new relation.relation(this.query.model, relation.model, [], relationName).createJoinClause()
 
+        const q = new QueryBuilder(this.query.model.relations[relationName].model)
+        if(modifiers){
+            modifiers(q)
+            this.query.relationsQueries[relationName] = q.query;
+        }
 
-
-
-
-    // public async execute() : Promise<T[]> {
-    //     const result = (await Connection.getInstance().query(this.toSQL())).rows
-    //     return this.mapQueryResultsToModel(result);
-    // }
-
-    public async execute(){
-        await QueryExecutor.execute(this.query)
-        // console.log(this.query)
+        this.query.joins.push(...joinClause)
     }
 
+    public async execute() : Promise<T[]>{
+
+        const results = await (new QueryExecutor(this.query)).execute()
+
+        return results
+
+    }
 
     public getSQL(){
-        return QueryExecutor.toSQL(this.query)
+        return (new QueryExecutor(this.query)).toSQL()
     }
 
 

@@ -1,9 +1,10 @@
 import {Relation} from "@/relations/Relation";
 import Model from "@/base-model/baseModel";
-import {Constructor, Join} from "@/types/query.types";
+import { Join} from "@/types/query.types";
+import {Constructor} from "@/types/model.types";
 import QueryBuilder from "@/query-builder/queryBuilder";
 
-export class ManyToManyRelation<S, R extends Model> extends Relation<S, R> {
+export class ManyToManyRelation<S extends Model, R extends Model> extends Relation<S, R> {
 
     constructor(sourceModelClass: Constructor<S>, relatedModelClass: Constructor<R>, columns: string[], relationName : string) {
         super(sourceModelClass, relatedModelClass, columns, relationName);
