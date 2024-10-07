@@ -21,14 +21,15 @@ interface User {
     id: number,
     first_name: string,
     shippingAddress_id: number,
-    shippingAddress : ShippingAddress,
+    shipping_address : ShippingAddress,
 }
 
 interface ShippingAddress {
     id: number,
     region: string,
     city: string,
-    postOffice: string
+    postOffice: string,
+    full_address: string,
 }
 
 class ShippingAddress extends Model implements ShippingAddress {
@@ -87,11 +88,11 @@ async function some() {
     const u = await User.$query()
         .select(["id", "first_name"])
         .joinRelation('shipping_address', ((builder)=>{
-            builder.select(['id AS sa_id', "full_address"]);
+            builder.select(["full_address"]);
         }))
         .execute();
 
-    console.log(u)
+    console.log(u[0].shipping_address.full_address)
 }
 
 some()

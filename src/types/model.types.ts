@@ -27,4 +27,5 @@ export interface Constructor<T> {
     tableName: string;
     relations : RelationalMappings;
     columns : string[];
+    // [key: string]: any;
 }

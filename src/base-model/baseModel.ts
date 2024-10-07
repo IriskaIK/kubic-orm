@@ -6,6 +6,7 @@ import {RelationalMappings, Constructor} from "@/types/model.types";
 class Model {
     private static query: QueryBuilder<typeof Model>;
     private static connection: Connection;
+    [key: string]: any;
 
     static get tableName(): string {
         // TODO: handle error
