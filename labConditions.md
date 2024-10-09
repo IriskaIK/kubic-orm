@@ -105,4 +105,4 @@
 
 ### Static polymorphism
 
-- `Coming soon for QueryBuilder methods`
+- Generics in `QueyBuilder`, `QueryBuilderBase`, `QueryExecutor`, `QueryResultsMapper`, `Relation`(and children of `Relation`)
