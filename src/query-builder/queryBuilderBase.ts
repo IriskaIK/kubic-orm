@@ -37,6 +37,8 @@ class QueryBuilderBase<T extends Model> {
 
     private parseColumn(column: string, alias? : string): Column {
         // TODO: Validate column
+
+        // TODO: add uui to each column, which will be used as alias prefix
         if(column.includes(' AS ')){
             const [col, alias] = column.split(" AS ")
             return this.parseColumn(col, alias)

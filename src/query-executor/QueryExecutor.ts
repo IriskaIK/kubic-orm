@@ -5,32 +5,36 @@ import Model from "@/base-model/baseModel";
 import logger from "@/utils/logger/logger";
 import {QueryResultsMapper} from "@/query-results-mapper/QueryResultsMapper";
 import QueryBuilderBase from "@/query-builder/queryBuilderBase";
-import {ColumnNameReference, ResultMappingColumnPrototype} from "@/types/mapper.types";
+import {ResultMappingModelPrototype} from "@/types/mapper.types";
 
 class QueryExecutor<T extends Model> {
     private query : Query<T>;
-    private mappedResultModelPrototype : ResultMappingColumnPrototype = {
-        'origin' : []
-    };
+    private modelProto : ResultMappingModelPrototype<T, Model>;
+
+
+    private buildProtoTree(query : Query<Model>){
+        let proto : ResultMappingModelPrototype<T, Model> = {
+            model : query.model,
+            tableName : query.table,
+            columns : query.columns,
+            relations : {}
+        }
+        for(const [key, value] of Object.entries(query.relationsQueries)){
+            proto.relations[key] = this.buildProtoTree(value)
+        }
+        return proto;
+    }
 
 
 
     constructor(query: Query<T>) {
         this.query = query;
-    }
-
-    private mapColumnNameToResultModelPrototype(column: string, relationName? : string, alias? : string){
-        if(relationName){
-            this.mappedResultModelPrototype[relationName].push({column, alias});
-        }else{
-            this.mappedResultModelPrototype['origin'].push({column, alias});
-        }
+        this.modelProto = this.buildProtoTree(query)
     }
 
 
 
-
-    private getColumnSQLString(column: Column, relationName? : string) {
+    private getColumnSQLString(column: Column) {
         return `"${column.parentTable ? column.parentTable + '"."' : ''}${column.column}"${column.alias ? ` AS "${column.alias}"` : ""}`
     }
 
@@ -41,11 +45,10 @@ class QueryExecutor<T extends Model> {
         return column
     }
 
-    private selectAllColumns(query : Query<Model>, relationName? : string){
+    private selectAllColumns(query : Query<Model>){
         let columnsArray: string[] = []
         query.model.columns.forEach(column => {
             columnsArray.push(`"${query.table}"."${column}"`)
-            this.mapColumnNameToResultModelPrototype(column, relationName)
         })
         return columnsArray
     }
@@ -53,20 +56,15 @@ class QueryExecutor<T extends Model> {
     private groupColumnsByTableName(query : Query<Model>, relationName? : string) : string[]{
         let columnsArray: string[] = []
         if(query.columns.length === 0){
-            columnsArray = this.selectAllColumns(query, relationName)
+            columnsArray = this.selectAllColumns(query)
             return columnsArray
         }
         query.columns.forEach((column) =>{
             if(column.column === '*'){
-                columnsArray = this.selectAllColumns(query, relationName)
+                columnsArray = this.selectAllColumns(query)
                 return columnsArray
             }
-            if(column.alias){
-                this.mapColumnNameToResultModelPrototype(column.column, relationName, column.alias)
-            }else{
-                this.mapColumnNameToResultModelPrototype(column.column, relationName)
-            }
-            columnsArray.push(this.getColumnSQLString(this.assignTableNameToColumn(column, query.table), relationName))
+            columnsArray.push(this.getColumnSQLString(this.assignTableNameToColumn(column, query.table)))
         })
         return columnsArray
     }
@@ -77,7 +75,6 @@ class QueryExecutor<T extends Model> {
         columnsArray = columnsArray.concat(this.groupColumnsByTableName(this.query));
 
         for(const [key, value] of Object.entries(this.query.relationsQueries)){
-            this.mappedResultModelPrototype[key] = [];
             columnsArray = columnsArray.concat(this.groupColumnsByTableName(value, key))
         }
 
@@ -168,14 +165,17 @@ class QueryExecutor<T extends Model> {
     public async execute() : Promise<T[]> {
         const SQLQuery = this.toSQL()
 
-        console.log(this.mappedResultModelPrototype)
+        // console.log(this.mappedResultModelPrototype)
 
         logger.info(`Generated query: ${SQLQuery}`)
 
         const result = (await Connection.getInstance().query(SQLQuery)).rows
         logger.info(`Query results: ${JSON.stringify(result)}`)
 
-        const mappedInstances = QueryResultsMapper.mapResultsToModelInstances(result, this.query.model, this.query.relationsQueries, this.mappedResultModelPrototype)
+        const mappedInstances = QueryResultsMapper.mapToInstances(result, this.modelProto)
+
+        logger.info(`Proto: ${JSON.stringify(this.modelProto)}`)
+
         logger.info(`Mapped instances: ${JSON.stringify(mappedInstances)}`)
 
 

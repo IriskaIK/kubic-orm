@@ -92,7 +92,7 @@ async function some() {
         }))
         .execute();
 
-    console.log(u[0].shipping_address.full_address)
+    // console.log(u[0].shipping_address.full_address)
 }
 
 some()

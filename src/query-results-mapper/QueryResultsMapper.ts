@@ -1,7 +1,7 @@
 import Model from "@/base-model/baseModel";
 import {Constructor} from "@/types/model.types";
 import {Query} from "@/types/query.types";
-import {ResultMappingColumnPrototype} from "@/types/mapper.types";
+import {ResultMappingColumnPrototype, ResultMappingModelPrototype} from "@/types/mapper.types";
 
 export class QueryResultsMapper {
 
@@ -35,6 +35,40 @@ export class QueryResultsMapper {
             mappedInstances.push(instance)
         })
         return mappedInstances;
+    }
+
+
+
+    private static mapData<T extends Model>(resultsKey: string, data: any, instance: T, modelProto : ResultMappingModelPrototype<T, Model>){
+        for(const [key, value] of Object.entries(modelProto.columns)) {
+            if(value.column == resultsKey){
+                Object.assign(instance, {[value.column]: data})
+                return;
+            }else if(value.alias == resultsKey){
+                Object.assign(instance, {[value.alias] : data})
+            }
+        }
+        for(const [key, value] of Object.entries(modelProto.relations)) {
+            const s = new modelProto.relations[key].model;
+            Object.assign(instance, {[key] : s})
+            this.mapData(resultsKey, data, s, value)
+        }
+    }
+
+    public static mapToInstances<T extends Model>(results : Record<string, any>[], modelProto : ResultMappingModelPrototype<T, Model>){
+        let mappedInstances: T[] = [];
+
+        results.forEach((e)=>{
+            let instance = new modelProto.model()
+            for (const key in e){
+                this.mapData(key, e[key], instance, modelProto);
+            }
+            mappedInstances.push(instance as T)
+        })
+
+        return mappedInstances;
+
+
     }
 }
 
